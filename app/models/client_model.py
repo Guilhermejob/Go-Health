@@ -1,6 +1,7 @@
 from app.configs.database import db
 from dataclasses import dataclass
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship,backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -28,6 +29,10 @@ class ClientModel(db.Model):
     height = Column(Float, nullable=False)
     weigth = Column(Float, nullable=False)
     imc = Column(Float, nullable=False)
+
+    diseases = relationship("DiseaseModel",backref=backref("client",uselist=False))
+    surgeries = relationship("SurgeryModel",backref=backref("client",uselist=False))
+    deficiencies = relationship("DeficiencyModel",backref=backref("client",uselist=False))
 
     @property
     def password(self):
