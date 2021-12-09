@@ -28,10 +28,16 @@ def add_diseases_deficiencies_surgeries(items, model):
 def create_client():
 
     data = request.get_json()
+    
+    if data.get('diseases'):
+        diseases = data.pop('diseases')
+    
+    if data.get('deficiencies'):
+        deficiencies = data.pop('deficiencies')
 
-    diseases = data.pop('disease')
-    deficiencies = data.pop('deficiency')
-    surgeries = data.pop('surgery')
+    if data.get('surgeries'):
+        surgeries = data.pop('surgeries')
+    
     password_to_hash = data.pop("password")
 
     data['imc'] = data['weigth']/(data['height'] * data['height'])
@@ -41,7 +47,7 @@ def create_client():
 
     if diseases:
         disease_list = add_diseases_deficiencies_surgeries(
-            diseases, DiseaseModel)
+            diseases, DiseaseModel,client)
         client.diseases.extend(disease_list)
 
     if deficiencies:
@@ -66,16 +72,10 @@ def get_client(id):
     if not client:
         return {"msg": "Cliente não encontrado"},404
     
-    return jsonify({
-        "name": client.name,
-        "last_name": client.last_name,
-        "age": client.age,
-        "email": client.email,
-        "gender": client.gender,
-        "height": client.height, 
-        "weigth": client.weigth,
-        "imc": client.imc,
-        "diseases": [{"name": disease.name} for disease in client.diseases],
-        "surgeries":[{"name": surgery.name} for surgery in client.surgeries],
-        "deficiencies":[{"name": deficiency.name} for deficiency in client.deficiencies]
-    }),200
+    return jsonify(client.serialize()),200
+
+
+def get_all():
+    all_clients = ClientModel.query.all()
+
+    return jsonify([client.serialize() for client in all_clients]),200
