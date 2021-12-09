@@ -5,20 +5,22 @@ from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
 
 
-def add_diseases_deficiencies_surgeries(items, model, client_id):
+def add_diseases_deficiencies_surgeries(items, model):
 
     items_list = []
 
     for item in items:
-        item_to_add = {
-            'name': f"{item['name']}",
-            'client_id': client_id
-        }
-        found_item = model(**item_to_add)
-        current_app.db.session.add(found_item)
-        current_app.db.session.commit()
+        item_to_add = model.query.filter(model.name.ilike(f"%{item['name']}%")).first()
+        
+        if not item_to_add:
+            item_to_add = {'name': f"{item['name']}"}
+            new_item = model(**item_to_add)
 
-        items_list.append(found_item)
+            current_app.db.session.add(new_item)
+            current_app.db.session.commit()
+            item_to_add = model.query.filter(model.name.ilike(f"%{item['name']}%")).first()
+
+        items_list.append(item_to_add)
 
     return items_list
 
@@ -37,18 +39,23 @@ def create_client():
     client = ClientModel(**data)
     client.password = password_to_hash
 
-    current_app.db.session.add(client)
-    current_app.db.session.commit()
-
     if diseases:
         disease_list = add_diseases_deficiencies_surgeries(
-            diseases, DiseaseModel, client.client_id)
+            diseases, DiseaseModel)
+        client.diseases.extend(disease_list)
+
     if deficiencies:
         deficiency_list = add_diseases_deficiencies_surgeries(
-            deficiencies, DeficiencyModel, client.client_id)
+            deficiencies, DeficiencyModel)
+        client.deficiencies.extend(deficiency_list)
+        
     if surgeries:
         surgery_list = add_diseases_deficiencies_surgeries(
-            surgeries, SurgeryModel, client.client_id)
+            surgeries, SurgeryModel)
+        client.surgeries.extend(surgery_list)
+
+    current_app.db.session.add(client)
+    current_app.db.session.commit()
 
     return jsonify(client), 201
 
