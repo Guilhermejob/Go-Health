@@ -49,7 +49,7 @@ def create():
 
     if diseases:
         disease_list = add_diseases_deficiencies_surgeries(
-            diseases, DiseaseModel, client)
+            diseases, DiseaseModel)
         client.diseases.extend(disease_list)
 
     if deficiencies:
@@ -70,7 +70,6 @@ def create():
 
 def get_by_id(id):
     client: ClientModel = ClientModel.query.get(id)
-
     if not client:
         return {"msg": "Cliente não encontrado"}, 404
 
@@ -79,5 +78,4 @@ def get_by_id(id):
 
 def get_all():
     all_clients = ClientModel.query.all()
-
-    return jsonify([client.serialize() for client in all_clients]), 200
+    return jsonify(all_clients), 200

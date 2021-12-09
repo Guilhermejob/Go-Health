@@ -26,5 +26,5 @@ def get_all():
 
 
 def get_by_id(id):
-    professional_list = ProfessionalModel.query.filter_by(id=id).all()
-    return jsonify(professional_list), 200
+    professional = ProfessionalModel.query.filter_by(id=id).first()
+    return jsonify(professional.serialize()), 200
