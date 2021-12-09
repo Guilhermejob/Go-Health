@@ -8,6 +8,11 @@ def init_app(app: Flask):
     from app.models.deficiency_model import DeficiencyModel
     from app.models.surgery_model import SurgeryModel
     from app.models.diseases_model import DiseaseModel
+    from app.models.deficiency_client import deficiencyclientmodel
+    from app.models.disease_client import diseaseclientmodel
+    from app.models.surgery_client import surgeryclientmodel
+    from app.models.food_plan_model import FoodPlanModel
+    from app.models.professional_rating_model import ProfessionalRatingModel
 
     from app.models.professional_model import ProfessionalModel
 
