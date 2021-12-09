@@ -9,4 +9,6 @@ def init_app(app: Flask):
     from app.models.surgery_model import SurgeryModel
     from app.models.diseases_model import DiseaseModel
 
+    from app.models.professional_model import ProfessionalModel
+
     Migrate(app, app.db)

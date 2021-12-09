@@ -54,21 +54,21 @@ def create_client():
 
 
 def get_client(id):
-    client:ClientModel = ClientModel.query.get(id)
-    
+    client: ClientModel = ClientModel.query.get(id)
+
     if not client:
-        return {"msg": "Cliente não encontrado"},404
-    
+        return {"msg": "Cliente não encontrado"}, 404
+
     return jsonify({
         "name": client.name,
         "last_name": client.last_name,
         "age": client.age,
         "email": client.email,
         "gender": client.gender,
-        "height": client.height, 
+        "height": client.height,
         "weigth": client.weigth,
         "imc": client.imc,
         "diseases": [{"name": disease.name} for disease in client.diseases],
-        "surgeries":[{"name": surgery.name} for surgery in client.surgeries],
-        "deficiencies":[{"name": deficiency.name} for deficiency in client.deficiencies]
-    }),200
+        "surgeries": [{"name": surgery.name} for surgery in client.surgeries],
+        "deficiencies": [{"name": deficiency.name} for deficiency in client.deficiencies]
+    }), 200
