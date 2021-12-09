@@ -1,7 +1,7 @@
+from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
-from sqlalchemy.orm import relationship,backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -30,9 +30,7 @@ class ClientModel(db.Model):
     weigth = Column(Float, nullable=False)
     imc = Column(Float, nullable=False)
 
-    diseases = relationship("DiseaseModel",backref=backref("client",uselist=False))
-    surgeries = relationship("SurgeryModel",backref=backref("client",uselist=False))
-    deficiencies = relationship("DeficiencyModel",backref=backref("client",uselist=False))
+    professional_id = Column(Integer, ForeignKey('professional.id'))
 
     @property
     def password(self):
@@ -44,3 +42,18 @@ class ClientModel(db.Model):
 
     def check_password(self, password_to_compare):
         return check_password_hash(self.password_hash, password_to_compare)
+
+    def serialize(self):
+        return {
+            "name": self.name,
+            "last_name": self.last_name,
+            "age": self.age,
+            "email": self.email,
+            "gender": self.gender,
+            "height": self.height,
+            "weigth": self.weigth,
+            "imc": self.imc,
+            "diseases": [{"name": disease.name} for disease in self.diseases],
+            "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
+            "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies]
+        }
