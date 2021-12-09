@@ -1,4 +1,6 @@
 from app.configs.database import db
+from sqlalchemy.orm import relationship
+
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, ForeignKey
 
@@ -12,4 +14,9 @@ class DiseaseModel(db.Model):
 
     disease_id = Column(Integer, primary_key=True)
     name = Column(String(31), nullable=False)
-    client_id = Column(Integer, ForeignKey('clients.client_id'))
+
+    clients = relationship(
+        "ClientModel",
+        secondary='disease_client',
+        backref="diseases"
+    )
