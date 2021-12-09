@@ -7,15 +7,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @dataclass
 class ClientModel(db.Model):
-
+    client_id: int
     name: str
     last_name: str
-    age: str
     email: str
-    gender: str
-    height: int
-    weigth: float
-    imc: str
 
     __tablename__ = 'clients'
 
