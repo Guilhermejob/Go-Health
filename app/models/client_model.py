@@ -15,12 +15,12 @@ class ClientModel(db.Model):
     __tablename__ = 'clients'
 
     client_id = Column(Integer, primary_key=True)
-    name = Column(String(63), nullable=False)
-    last_name = Column(String(63), nullable=False)
+    name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
-    gender = Column(String(63), nullable=False)
+    gender = Column(String(1), nullable=False)
     height = Column(Float, nullable=False)
     weigth = Column(Float, nullable=False)
     imc = Column(Float, nullable=False)

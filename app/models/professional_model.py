@@ -9,6 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class ProfessionalModel(db.Model):
     id: int
     name: str
+    last_name:str
     specialization: str
     final_rating: float
     email: str
@@ -18,6 +19,7 @@ class ProfessionalModel(db.Model):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
     gender = Column(String(1), nullable=False)
     age = Column(Integer, nullable=False)
     specialization = Column(String(50), nullable=False)
@@ -43,6 +45,7 @@ class ProfessionalModel(db.Model):
     def serialize(self):
         return {
             "name": self.name,
+            "last_name": self.last_name,
             "age":self.age,
             "gender": self.gender,
             "description": self.description,
