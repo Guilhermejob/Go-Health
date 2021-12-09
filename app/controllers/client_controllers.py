@@ -27,7 +27,7 @@ def add_diseases_deficiencies_surgeries(items, model):
     return items_list
 
 
-def create_client():
+def create():
 
     data = request.get_json()
 
@@ -68,7 +68,7 @@ def create_client():
     return jsonify(client), 201
 
 
-def get_client(id):
+def get_by_id(id):
     client: ClientModel = ClientModel.query.get(id)
 
     if not client:
