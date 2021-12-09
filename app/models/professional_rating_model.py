@@ -11,6 +11,7 @@ class ProfessionalRatingModel(db.Model):
     __tablename__ = 'professional_rating'
 
     id = Column(Integer, primary_key=True)
-    professional_id = Column(Integer, nullable=False)
     rating = Column(Integer)
     client_id = Column(Integer, nullable=False)
+    professional_id = Column(Integer, ForeignKey(
+        'professional.id'), nullable=False)

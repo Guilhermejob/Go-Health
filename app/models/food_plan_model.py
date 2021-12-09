@@ -16,6 +16,8 @@ class FoodPlanModel(db.Model):
     id = Column(Integer, primary_key=True)
     pdf = Column(String, nullable=False)
     start_time = Column(DateTime, default=datetime.utcnow())
-    expiration = Column(DateTime, default=datetime.utcnow() + timedelta(days=90))
-    client_id = Column(Integer, ForeignKey('clients.client_id'), nullable=False)
+    expiration = Column(
+        DateTime, default=datetime.utcnow() + timedelta(days=90))
+    client_id = Column(Integer, ForeignKey(
+        'clients.client_id'), nullable=False)
     professional_id = Column(Integer, nullable=False)
