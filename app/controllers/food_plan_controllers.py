@@ -1,10 +1,36 @@
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, send_file
 from os import mkdir, path
 from app.models.client_model import ClientModel
 from app.models.food_plan_model import FoodPlanModel
 from app.models.professional_model import ProfessionalModel
 from werkzeug.utils import secure_filename
 from app.excepts.professional_exceptions import InvalidFileError, UserNotFoundError, InvalidKeyValueError
+
+
+def get_food_plan_by_client_id(client_id: int):
+    
+    try:
+
+        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()
+        
+        check_user(client_id, ClientModel, 'client')
+
+    except UserNotFoundError as e:
+        return {"msg":str(e)},404
+
+    return jsonify(food_plan)
+
+
+def download_food_plan(food_plan_id: int):
+    
+    try:
+        
+        food_plan = check_user(food_plan_id, FoodPlanModel, 'archive')
+
+    except UserNotFoundError as e:
+        return {"msg":str(e)},404
+
+    return send_file(path.realpath(food_plan.pdf), as_attachment=True)
 
 
 def create_plan():  
@@ -60,6 +86,6 @@ def check_user(id,model,user_type:str):
 
     user = model.query.get(id)
     if not user:
-        raise UserNotFoundError(f"O {user_type} não foi encontrado")
+        raise UserNotFoundError(f"{user_type} not found")
 
     return user
