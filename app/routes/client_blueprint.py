@@ -6,6 +6,6 @@ bp_clients = Blueprint('bp_clients', __name__, url_prefix='/clients')
 
 
 bp_clients.post('')(create)
-bp_clients.post('/create_food_plan')(create_plan)
+bp_clients.post('/create-food-plan')(create_plan)
 bp_clients.get('/<int:id>')(get_by_id)
 bp_clients.get("")(get_all)

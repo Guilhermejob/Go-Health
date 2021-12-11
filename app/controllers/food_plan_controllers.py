@@ -1,29 +1,65 @@
 from flask import request, jsonify, current_app
-from os import mkdir, path, system
+from os import mkdir, path
 from app.models.client_model import ClientModel
 from app.models.food_plan_model import FoodPlanModel
-
 from app.models.professional_model import ProfessionalModel
+from werkzeug.utils import secure_filename
+from app.excepts.professional_exceptions import InvalidFileError, UserNotFoundError, InvalidKeyValueError
 
 
-def create_plan():
+def create_plan():  
+    try:
+        pdf = request.files['file']
+        filename = check_pdf_extension(pdf.filename)
+
+        professional = check_user(1,ProfessionalModel,"professional")
+        client = check_user(1,ClientModel,"client")
+        
+    except InvalidKeyValueError as e:
+        return {"msg":str(e)},400
+    except UserNotFoundError as e:
+        return {"msg":str(e)},404
+    except InvalidFileError as e:
+        return {"msg":str(e)},400
     
-    pdf = request.files['file']
-    professional = ProfessionalModel.query.get(1)
-    client = ClientModel.query.get(1)
-    
-    pdf_path = f"app/archive/{professional.name.lower()}{professional.id}/{client.name.lower()}{client.client_id}/{pdf.filename.lower().replace(' ', '_')}"
+    file_directory_path = create_file_directoy(professional, client)
+    pdf_path = f"{file_directory_path}/{filename.lower()}"
     
     send_pdf = FoodPlanModel(pdf=pdf_path, client_id=client.client_id, professional_id=professional.id)
     
     current_app.db.session.add(send_pdf)
     current_app.db.session.commit()
     
-    if not path.isdir(f"app/archive/{professional.name.lower()}{professional.id}"):
-        mkdir(f"app/archive/{professional.name.lower()}{professional.id}")
-    if not path.isdir(f"app/archive/{professional.name.lower()}{professional.id}/{client.name.lower()}{client.client_id}"):
-        mkdir(f"app/archive/{professional.name.lower()}{professional.id}/{client.name.lower()}{client.client_id}")
     pdf.save(pdf_path)
     
-    
     return jsonify(send_pdf), 201
+
+
+def create_file_directoy(professional, client):
+    professional_path = f"app/archive/{professional.name.lower()}-{professional.id}"
+    client_path = f"{client.name.lower()}-{client.client_id}"
+
+    if not path.isdir(professional_path):
+        mkdir(professional_path)
+    if not path.isdir(f"{professional_path}/{client_path}"):
+        mkdir(f"{professional_path}/{client_path}")
+
+    return f"{professional_path}/{client_path}"
+
+
+def check_pdf_extension(filename:str):
+    extension = filename.split('.')[-1]
+    if extension != "pdf":
+        raise InvalidFileError("The file extension is not a pdf")
+    return secure_filename(filename)
+
+
+def check_user(id,model,user_type:str):
+    if type(id) != int:
+        raise InvalidKeyValueError("id must be an integer")
+
+    user = model.query.get(id)
+    if not user:
+        raise UserNotFoundError(f"O {user_type} não foi encontrado")
+
+    return user

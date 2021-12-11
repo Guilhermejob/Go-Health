@@ -1,4 +1,3 @@
-from enum import unique
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
