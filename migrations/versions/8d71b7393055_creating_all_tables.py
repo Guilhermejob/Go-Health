@@ -86,7 +86,8 @@ def upgrade():
     )
     op.create_table('food_plan',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('pdf', sa.String(), nullable=False),
+    sa.Column('pdf_name', sa.String(length=255)),
+    sa.Column('pdf', sa.LargeBinary()),
     sa.Column('start_time', sa.DateTime(), nullable=True),
     sa.Column('expiration', sa.DateTime(), nullable=True),
     sa.Column('client_id', sa.Integer(), nullable=False),
