@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class FoodPlanModel(db.Model):
 
+    id: int
     pdf: str
     start_time: str
     expiration: str
