@@ -7,12 +7,9 @@ from werkzeug.utils import secure_filename
 from app.excepts.professional_exceptions import InvalidFileError, UserNotFoundError, InvalidKeyValueError
 
 
-def get_food_plan_by_client_id(client_id: int):
-    
+def get_food_plan_by_client_id(client_id: int):  
     try:
-
         food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()
-        
         check_user(client_id, ClientModel, 'client')
 
     except UserNotFoundError as e:
@@ -22,9 +19,7 @@ def get_food_plan_by_client_id(client_id: int):
 
 
 def download_food_plan(food_plan_id: int):
-    
     try:
-        
         food_plan = check_user(food_plan_id, FoodPlanModel, 'archive')
 
     except UserNotFoundError as e:

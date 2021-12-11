@@ -2,9 +2,7 @@ from flask import Flask
 from os import getenv, path, mkdir
 from app.configs import database, migrations
 from app import routes
-from dotenv import load_dotenv
 
-load_dotenv()
 
 def create_app():
 
