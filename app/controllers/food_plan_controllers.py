@@ -28,13 +28,13 @@ def download_food_plan(food_plan_id: int):
     return send_file(path.realpath(food_plan.pdf), as_attachment=True)
 
 
-def create_plan():  
+def create_plan(client_id):  
     try:
         pdf = request.files['file']
         filename = check_pdf_extension(pdf.filename)
 
-        professional = check_user(1,ProfessionalModel,"professional")
-        client = check_user(1,ClientModel,"client")
+        professional = check_user(2,ProfessionalModel,"professional")
+        client = check_user(client_id,ClientModel,"client")
         
     except InvalidKeyValueError as e:
         return {"msg":str(e)},400
