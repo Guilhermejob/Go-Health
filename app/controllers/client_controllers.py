@@ -3,6 +3,8 @@ from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
+from app.models.calendar_table import CalendarModel
+from datetime import *
 
 
 def add_diseases_deficiencies_surgeries(items, model):
@@ -79,3 +81,44 @@ def get_by_id(id):
 def get_all():
     all_clients = ClientModel.query.all()
     return jsonify(all_clients), 200
+
+
+def schedule_appointment(id):
+
+    data = request.get_json()
+
+    schedule_date = data.pop('schedule_date')
+
+    schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
+
+    schedules = CalendarModel.query.all()
+
+    schedules_found = [
+        schedule for schedule in schedules if schedule.professional_id == id]
+
+    check_false = []
+
+    if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
+        return 'é fim de semana'
+
+    else:
+        for schedule_found in schedules_found:
+
+            teste = (datetime.strptime(
+                str(schedule_found.schedule), "%Y-%m-%d %H:%M:%S"))
+
+            value = schedule_date >= teste + timedelta(minutes=45)
+
+            check_false.append(value)
+
+    if False in check_false:
+        return 'horario indisponivel'
+    else:
+        data['schedule'] = schedule_date
+
+        schedule = CalendarModel(**data)
+
+        current_app.db.session.add(schedule)
+        current_app.db.session.commit()
+
+        return jsonify({'msg': 'Horario marcado, nos vemos na consulta!'}), 201
