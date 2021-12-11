@@ -1,3 +1,4 @@
+from sqlalchemy.orm import relationship
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
@@ -28,6 +29,8 @@ class ProfessionalModel(db.Model):
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String, nullable=False)
     phone = Column(String(15))
+
+    rating = relationship("ProfessionalRatingModel", backref="professional")
 
     @property
     def password(self):
