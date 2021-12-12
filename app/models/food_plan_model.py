@@ -1,5 +1,6 @@
+from typing import BinaryIO
 from app.configs.database import db
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 
@@ -7,14 +8,16 @@ from dataclasses import dataclass
 @dataclass
 class FoodPlanModel(db.Model):
 
-    pdf: str
+    id: int
+    pdf_name: str
     start_time: str
     expiration: str
 
     __tablename__ = 'food_plan'
 
     id = Column(Integer, primary_key=True)
-    pdf = Column(String, nullable=False)
+    pdf_name = Column(String)
+    pdf = Column(LargeBinary)
     start_time = Column(DateTime, default=datetime.utcnow())
     expiration = Column(
         DateTime, default=datetime.utcnow() + timedelta(days=90))
