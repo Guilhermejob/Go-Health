@@ -3,7 +3,7 @@ from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 
@@ -53,6 +53,12 @@ def get_diseases_deficiencies_surgeries(data):
     return diseases,deficiencies,surgeries
 
 
+def check_update_keys(data):
+    for key in data.keys():
+        if((key not in ClientModel.mandatory_keys) and (key not in ClientModel.optional_keys)):
+            raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
+
+
 def check_data_keys(data):
     if (len(data) < len(ClientModel.mandatory_keys)) or (len(data) > (len(ClientModel.mandatory_keys) + len(ClientModel.optional_keys))):
         raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
@@ -61,14 +67,55 @@ def check_data_keys(data):
         if key not in data.keys():
             raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
 
-    for key in data.keys():
-        if((key not in ClientModel.mandatory_keys) and (key not in ClientModel.optional_keys)):
-            raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
-    
-    # return data
+    check_update_keys(data)
+  
 
-# def check_data_values(data):
-#     return True
+def check_data_values(data):
+
+    # "name","last_name","age","email","password","gender","height","weigth"
+    for key,value in data.items():
+        if ((
+            key == "name" or
+            key == "last_name" or
+            key == "email" or
+            key == "password" or
+            key == "gender"
+        ) and type(value) != str):
+            raise InvalidValueTypeError(data)
+        
+        if((key == "height" or key == "weigth") and type(value) != float):
+            raise InvalidValueTypeError(data)
+
+        if key == "age" and type(value) != int:
+            raise InvalidValueTypeError(data)
+        
+        # "diseases","surgeries","deficiencies" - [{"name":"string"}]
+        if (key == "diseases" or key == "surgeries" or key == "deficiencies"):
+            if type(value) != list:
+                raise InvalidValueTypeError(data)
+            
+            if(len(value)>0):
+                for item in value:
+                    if(
+                        (type(item) != dict) or 
+                        (len(item) != 1) or 
+                        ("name" not in item.keys()) or 
+                        type(item["name"]) != str
+                    ):
+                        raise InvalidValueTypeError(data)
+    
+    check_gender(data["gender"])
+    check_email(data["email"])
+
+
+def check_gender(gender:str):
+    if ((gender.lower() != 'm') and (gender.lower() != 'f')):
+        raise InvalidGenderValueError
+
+
+def check_email(email:str):
+    if not (("@" in email) and ("." in email.split("@")[-1])):
+        raise InvalidEmailError
 
 
 def create():
@@ -77,6 +124,7 @@ def create():
     
     try:
         check_data_keys(data)
+        check_data_values(data)
 
         diseases,deficiencies,surgeries = get_diseases_deficiencies_surgeries(data)
 
@@ -96,7 +144,13 @@ def create():
 
     except InvalidKeysError as error:
         return jsonify(error.message), 400
-
+    except InvalidValueTypeError as error:
+        return jsonify(error.message), 400
+    except InvalidEmailError as error:
+        return jsonify(error.message), 400
+    except InvalidGenderValueError as error:
+        return jsonify(error.message), 400
+    
     return jsonify(client), 201
 
 
