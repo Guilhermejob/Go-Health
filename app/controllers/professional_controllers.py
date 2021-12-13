@@ -7,7 +7,7 @@ def create():
 
     session = current_app.db.session
 
-    # send hash to db
+    # convert password in password_hash
     password_to_hash = data.pop("password")
     professional = ProfessionalModel(**data)
     professional.password = password_to_hash

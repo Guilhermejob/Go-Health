@@ -1,8 +1,8 @@
-"""creating all tables
+"""empty message
 
-Revision ID: 8d71b7393055
+Revision ID: 8c67ceb0e044
 Revises: 
-Create Date: 2021-12-09 17:51:33.666362
+Create Date: 2021-12-12 10:51:46.713922
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8d71b7393055'
+revision = '8c67ceb0e044'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,6 +31,7 @@ def upgrade():
     op.create_table('professional',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('last_name', sa.String(length=100), nullable=False),
     sa.Column('gender', sa.String(length=1), nullable=False),
     sa.Column('age', sa.Integer(), nullable=False),
     sa.Column('specialization', sa.String(length=50), nullable=False),
@@ -66,7 +67,7 @@ def upgrade():
     )
     op.create_table('professional_rating',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('rating', sa.Integer(), nullable=True),
+    sa.Column('rating', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('professional_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['professional_id'], ['professional.id'], ),
@@ -86,8 +87,8 @@ def upgrade():
     )
     op.create_table('food_plan',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('pdf_name', sa.String(length=255)),
-    sa.Column('pdf', sa.LargeBinary()),
+    sa.Column('pdf_name', sa.String(), nullable=True),
+    sa.Column('pdf', sa.LargeBinary(), nullable=True),
     sa.Column('start_time', sa.DateTime(), nullable=True),
     sa.Column('expiration', sa.DateTime(), nullable=True),
     sa.Column('client_id', sa.Integer(), nullable=False),
