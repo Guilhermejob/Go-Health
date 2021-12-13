@@ -3,7 +3,7 @@ from app.models.client_model import ClientModel
 from app.models.food_plan_model import FoodPlanModel
 from app.models.professional_model import ProfessionalModel
 from werkzeug.utils import secure_filename
-from app.excepts.professional_exceptions import InvalidFileError, UserNotFoundError, InvalidKeyValueError
+from app.excepts.food_plan_exceptions import InvalidFileError, UserNotFoundError, InvalidKeyValueError
 import io
 
 
