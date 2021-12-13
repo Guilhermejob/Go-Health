@@ -6,6 +6,7 @@ from app.models.diseases_model import DiseaseModel
 from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
+from sqlalchemy.exc import IntegrityError
 
 
 def add_diseases_deficiencies_surgeries(items, model):
@@ -156,6 +157,8 @@ def update(id):
         return jsonify(error.message), 400
     except InvalidGenderValueError as error:
         return jsonify(error.message), 400
+    except IntegrityError:
+        return jsonify({"message":"email already exists"}),409
 
     return jsonify(client),201
 
@@ -193,6 +196,8 @@ def create():
         return jsonify(error.message), 400
     except InvalidGenderValueError as error:
         return jsonify(error.message), 400
+    except IntegrityError:
+        return jsonify({"message":"email already exists"}),409
     
     return jsonify(client), 201
 
