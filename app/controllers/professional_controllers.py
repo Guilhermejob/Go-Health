@@ -84,4 +84,4 @@ def get_free_schedules(id):
         if hour not in busy_schedule:
             free_schedules.append(hour)
 
-    return jsonify(free_schedules)
+    return jsonify([{'horario': schedule_found} for schedule_found in free_schedules]), 200
