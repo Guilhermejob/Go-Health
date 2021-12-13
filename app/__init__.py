@@ -15,6 +15,7 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_SORT_KEYS"] = False
     app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
+    app.config["SECRET_KEY"] = getenv("SECRET_KEY")
 
     database.init_app(app)
     migrations.init_app(app)

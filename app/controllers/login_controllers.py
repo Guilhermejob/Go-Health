@@ -1,37 +1,58 @@
-from flask import request
-from flask_jwt_extended import create_access_token
+from flask import request, jsonify
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from app.exceptions.login_exceptions import EmailNotFoundError, IncorrectPasswordError
 from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
+
+@jwt_required()
+def get_user_info():
+    user = get_jwt_identity()
+    return jsonify(user), 200
+
 
 def signin_client():
     
     data = request.get_json()
     
-    formatted_email = f"%{data['email']}%"
-    client = ClientModel.query.filter(ClientModel.email.ilike(formatted_email)).first()
-    
-    if not client:
-        return {"message": "client not found"}, 404
-    
-    if client.check_password(data['password']):
+    try:
+        formatted_email = f"%{data['email']}%"
+        client = ClientModel.query.filter(ClientModel.email.ilike(formatted_email)).first()
+        
+        if not client:
+            raise EmailNotFoundError(data['email'])
+        
+        if not client.check_password(data['password']):
+            raise IncorrectPasswordError()
+        
         access_token = create_access_token(client)
-        return {"access_token": access_token}, 200
-    else:
-        return {"message": "Email or password do not match."}, 401
+
+    except EmailNotFoundError as error:
+        return jsonify(error.message), 404
+    except IncorrectPasswordError as error:
+        return jsonify(error.message), 401
+
+    return {"access_token": access_token}, 200
     
 
 def signin_professional():
     
     data = request.get_json()
     
-    formatted_email = f"%{data['email']}%"
-    professional = ProfessionalModel.query.filter(ProfessionalModel.email.ilike(formatted_email)).first()
-    
-    if not professional:
-        return {"message": "professional not found"}, 404
-    
-    if professional.check_password(data['password']):
-        access_token = create_access_token(professional)
-        return {"access_token": access_token}, 200
-    else:
-        return {"message": "Email or password do not match."}, 401
+    try:
+        formatted_email = f"%{data['email']}%"
+        client = ProfessionalModel.query.filter(ProfessionalModel.email.ilike(formatted_email)).first()
+        
+        if not client:
+            raise EmailNotFoundError(data['email'])
+        
+        if not client.check_password(data['password']):
+            raise IncorrectPasswordError()
+        
+        access_token = create_access_token(client)
+
+    except EmailNotFoundError as error:
+        return jsonify(error.message), 404
+    except IncorrectPasswordError as error:
+        return jsonify(error.message), 401
+
+    return {"access_token": access_token}, 200
