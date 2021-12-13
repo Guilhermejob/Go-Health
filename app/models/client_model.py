@@ -14,6 +14,9 @@ class ClientModel(db.Model):
 
     __tablename__ = 'clients'
 
+    mandatory_keys = ["name","last_name","age","email","password","gender","height","weigth"]
+    optional_keys = ["diseases","surgeries","deficiencies"]
+
     client_id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
