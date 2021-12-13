@@ -1,6 +1,6 @@
 from flask import Flask
 from os import getenv, path, mkdir
-from app.configs import database, migrations
+from app.configs import database, migrations, auth
 from app import routes
 from dotenv import load_dotenv
 
@@ -13,6 +13,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = getenv("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_SORT_KEYS"] = False
+    app.config['SECRET_KEY'] = getenv('SECRET_KEY')
     FILES_DIRECTORY = f"app/{getenv('FILES_DIRECTORY')}"
 
     if not path.isdir(FILES_DIRECTORY):
@@ -20,6 +21,7 @@ def create_app():
 
     database.init_app(app)
     migrations.init_app(app)
+    auth.JWTManager(app)
     routes.init_app(app)
 
     return app
