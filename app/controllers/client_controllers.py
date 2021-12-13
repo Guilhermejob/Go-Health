@@ -91,10 +91,7 @@ def schedule_appointment(id):
 
     schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
 
-    schedules = CalendarModel.query.all()
-
-    schedules_found = [
-        schedule for schedule in schedules if schedule.professional_id == id]
+    schedules_found = CalendarModel.query.filter_by(professional_id=id).all()
 
     check_false = []
 
@@ -107,11 +104,12 @@ def schedule_appointment(id):
             teste = (datetime.strptime(
                 str(schedule_found.schedule), "%Y-%m-%d %H:%M:%S"))
 
-            value = schedule_date >= teste + timedelta(minutes=45)
+            value = schedule_date != teste
 
             check_false.append(value)
 
     if False in check_false:
+
         return 'horario indisponivel'
     else:
         data['schedule'] = schedule_date

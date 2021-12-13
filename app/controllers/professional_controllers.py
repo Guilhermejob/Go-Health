@@ -1,6 +1,7 @@
 from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
 from app.models.calendar_table import CalendarModel
+from datetime import *
 
 
 def create():
@@ -40,3 +41,47 @@ def get_schedules(id):
     print(schedules_found)
 
     return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
+
+
+def get_free_schedules(id):
+
+    free_hours = []
+
+    busy_schedule = []
+
+    free_schedules = []
+
+    data = request.get_json()
+
+    try:
+        professional = ProfessionalModel.query.get_or_404(id)
+
+    except:
+        return jsonify({'msg': 'error not found'}), 404
+
+    try:
+        schedule_date = datetime.strptime(data['schedule_date'], "%d/%m/%Y")
+    except:
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'})
+
+    schedule_date = schedule_date + timedelta(hours=9)
+
+    schedules = CalendarModel.query.filter_by(professional_id=id).all()
+
+    if len(schedules) > 0:
+
+        for schedule_found in schedules:
+            date = (datetime.strptime(
+                str(schedule_found.schedule), "%Y-%m-%d %H:%M:%S"))
+            busy_schedule.append(date)
+
+    while schedule_date.hour < 17.15:
+        free_hours.append(schedule_date)
+        schedule_date += timedelta(minutes=45)
+
+    for hour in free_hours:
+
+        if hour not in busy_schedule:
+            free_schedules.append(hour)
+
+    return jsonify(free_schedules)

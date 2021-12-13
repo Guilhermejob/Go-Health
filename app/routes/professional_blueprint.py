@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.controllers.professional_controllers import create, get_all, get_by_id, get_schedules
+from app.controllers.professional_controllers import create, get_all, get_by_id, get_schedules, get_free_schedules
 
 
 bp_professional = Blueprint(
@@ -9,6 +9,8 @@ bp_professional.post('')(create)
 bp_professional.get('')(get_all)
 bp_professional.get('/<int:id>')(get_by_id)
 bp_professional.get('/<int:id>/schedules')(get_schedules)
+bp_professional.post('/<int:id>/free_schedules')(get_free_schedules)
+
 
 bp_teste = Blueprint('bp_teste', __name__)
 
