@@ -103,9 +103,6 @@ def check_data_values(data):
                         type(item["name"]) != str
                     ):
                         raise InvalidValueTypeError(data)
-    
-    check_gender(data["gender"])
-    check_email(data["email"])
 
 
 def check_gender(gender:str):
@@ -118,13 +115,59 @@ def check_email(email:str):
         raise InvalidEmailError
 
 
-def create():
+def update(id):
+    data = request.get_json()
+    try:
+        check_update_keys(data)
+        check_data_values(data)
+        if data.get("gender"):
+            check_gender(data["gender"])
+        if data.get("email"):
+            check_email(data["email"])
 
+        diseases,deficiencies,surgeries = get_diseases_deficiencies_surgeries(data)
+        if diseases:
+            data["diseases"] = diseases
+        if deficiencies:
+            data["deficiencies"] = deficiencies
+        if surgeries:
+            data["surgeries"] = surgeries
+
+        client = check_user(id,ClientModel,"client")
+
+        new_password = data.get("password") 
+        if new_password:
+            client.password = new_password
+            data.pop("password")
+
+        for key,value in data.items():
+            setattr(client,key,value)
+
+        current_app.db.session.add(client)
+        current_app.db.session.commit()
+
+    except NotFoundError as error:
+        return jsonify(error.message),404
+    except InvalidKeysError as error:
+        return jsonify(error.message), 400
+    except InvalidValueTypeError as error:
+        return jsonify(error.message), 400
+    except InvalidEmailError as error:
+        return jsonify(error.message), 400
+    except InvalidGenderValueError as error:
+        return jsonify(error.message), 400
+
+    return jsonify(client),201
+
+
+def create():
     data = request.get_json()
     
     try:
         check_data_keys(data)
         check_data_values(data)
+        check_gender(data["gender"])
+        check_email(data["email"])
 
         diseases,deficiencies,surgeries = get_diseases_deficiencies_surgeries(data)
 

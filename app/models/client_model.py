@@ -2,6 +2,7 @@ from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship,backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -30,6 +31,8 @@ class ClientModel(db.Model):
 
     professional_id = Column(Integer, ForeignKey('professional.id'))
 
+    food_plan = relationship("FoodPlanModel",backref=backref("client",uselist=False))
+
     @property
     def password(self):
         raise AttributeError('Password is not acessible.')
@@ -53,5 +56,6 @@ class ClientModel(db.Model):
             "imc": self.imc,
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
-            "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies]
+            "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
+            "food_plan": [plan for plan in self.food_plan]
         }
