@@ -101,10 +101,10 @@ def schedule_appointment(id):
     else:
         for schedule_found in schedules_found:
 
-            teste = (datetime.strptime(
+            check_schedule = (datetime.strptime(
                 str(schedule_found.schedule), "%Y-%m-%d %H:%M:%S"))
 
-            value = schedule_date != teste
+            value = schedule_date != check_schedule
 
             check_false.append(value)
 
