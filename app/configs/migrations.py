@@ -14,5 +14,6 @@ def init_app(app: Flask):
     from app.models.surgery_client import surgeryclientmodel
     from app.models.food_plan_model import FoodPlanModel
     from app.models.professional_rating_model import ProfessionalRatingModel
+    from app.models.calendar_table import CalendarModel
 
     Migrate(app, app.db)
