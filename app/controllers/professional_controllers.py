@@ -1,21 +1,33 @@
 from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
+from app.exceptions.professional_exceptions import NotFoundProfessionalError
+import sqlalchemy
+from app.controllers import format_output_especific_professional
 
 
 def create():
+
     data = request.get_json()
 
-    session = current_app.db.session
+    try:
 
-    # convert password in password_hash
-    password_to_hash = data.pop("password")
-    professional = ProfessionalModel(**data)
-    professional.password = password_to_hash
+        session = current_app.db.session
 
-    session.add(professional)
-    session.commit()
+        # convert password in password_hash
+        password_to_hash = data.pop("password")
+        professional = ProfessionalModel(**data)
+        professional.password = password_to_hash
 
-    return jsonify(professional), 200
+        session.add(professional)
+        session.commit()
+
+        return jsonify(professional), 200
+
+    except sqlalchemy.exc.IntegrityError as err:
+        errorInfo = str(err.orig.args)
+        msg = errorInfo.split('Key')[1].split('.\\n')[0]
+        msg = format_output_especific_professional(msg)
+        return jsonify({'error': msg}), 409
 
 
 def get_all():
@@ -26,5 +38,12 @@ def get_all():
 
 
 def get_by_id(id):
-    professional = ProfessionalModel.query.filter_by(id=id).first()
-    return jsonify(professional.serialize()), 200
+    try:
+        professional = ProfessionalModel.query.filter_by(id=id).first()
+
+        if professional == None:
+            raise NotFoundProfessionalError
+
+        return jsonify(professional.serialize()), 200
+    except NotFoundProfessionalError as err:
+        return jsonify(err.message), 404

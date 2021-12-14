@@ -19,3 +19,11 @@ def check_user(id, model, send_type: str):
         raise NotFoundError(send_type)
 
     return user
+
+
+def format_output_especific_professional(text):
+    output = text.replace('(', ' ')
+    output = output.replace(')', ' ')
+    output = output.lstrip()
+
+    return output

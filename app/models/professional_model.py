@@ -24,7 +24,7 @@ class ProfessionalModel(db.Model):
     age = Column(Integer, nullable=False)
     specialization = Column(String(50), nullable=False)
     description = Column(String(500), nullable=False)
-    crm = Column(String(15), nullable=False)
+    crm = Column(String(15), nullable=False, unique=True)
     final_rating = Column(Float)
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String, nullable=False)
