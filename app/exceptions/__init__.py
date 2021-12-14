@@ -1,5 +1,6 @@
 from flask import Flask
 
+
 def init_app(app: Flask):
     @app.errorhandler(413)
     def max_lenght(error):

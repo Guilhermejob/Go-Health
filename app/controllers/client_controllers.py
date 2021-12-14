@@ -4,6 +4,10 @@ from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
+from app.models.calendar_table import CalendarModel
+from app.models.professional_model import ProfessionalModel
+from app.exceptions.professional_exceptions import InvalidDateFormatError
+from datetime import *
 
 
 def add_diseases_deficiencies_surgeries(items, model):
@@ -82,3 +86,57 @@ def get_by_id(id):
 def get_all():
     all_clients = ClientModel.query.all()
     return jsonify(all_clients), 200
+
+
+def schedule_appointment(id):
+
+    data = request.get_json()
+
+    try:
+        if type(data['schedule_date']) != str:
+            raise InvalidDateFormatError
+    except InvalidDateFormatError as error:
+        return jsonify(error.message), 409
+
+    schedule_date = data.pop('schedule_date')
+
+    try:
+        schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
+    except:
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
+
+    schedules_found = CalendarModel.query.filter_by(professional_id=id).all()
+
+    check_false = []
+
+    try:
+        professional = ProfessionalModel.query.get_or_404(id)
+
+    except:
+        return jsonify({'msg': 'error not found'}), 404
+
+    if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
+        return jsonify({"msg": 'appointments cannot be scheduled over the weekend'}), 409
+
+    else:
+        for schedule_found in schedules_found:
+
+            check_schedule = (datetime.strptime(
+                str(schedule_found.schedule), "%Y-%m-%d %H:%M:%S"))
+
+            value = schedule_date != check_schedule
+
+            check_false.append(value)
+
+    if False in check_false:
+
+        return jsonify({'msg': 'busy schedule'}), 409
+    else:
+        data['schedule'] = schedule_date
+
+        schedule = CalendarModel(**data)
+
+        current_app.db.session.add(schedule)
+        current_app.db.session.commit()
+
+        return jsonify({'msg': 'Horario marcado, nos vemos na consulta!'}), 201

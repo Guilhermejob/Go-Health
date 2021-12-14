@@ -1,6 +1,5 @@
 class EmailNotFoundError(Exception):
 
-
     def __init__(self, email) -> None:
 
         self.message = {
@@ -9,10 +8,9 @@ class EmailNotFoundError(Exception):
         }
 
         super().__init__(self.message)
-        
-        
-class IncorrectPasswordError(Exception):
 
+
+class IncorrectPasswordError(Exception):
 
     def __init__(self) -> None:
 

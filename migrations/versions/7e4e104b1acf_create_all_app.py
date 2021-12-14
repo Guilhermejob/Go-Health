@@ -1,8 +1,8 @@
-"""creating all tables
+"""create all app
 
-Revision ID: 8d71b7393055
+Revision ID: 7e4e104b1acf
 Revises: 
-Create Date: 2021-12-09 17:51:33.666362
+Create Date: 2021-12-14 11:56:39.512557
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8d71b7393055'
+revision = '7e4e104b1acf'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,6 +31,7 @@ def upgrade():
     op.create_table('professional',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('last_name', sa.String(length=100), nullable=False),
     sa.Column('gender', sa.String(length=1), nullable=False),
     sa.Column('age', sa.Integer(), nullable=False),
     sa.Column('specialization', sa.String(length=50), nullable=False),
@@ -41,6 +42,7 @@ def upgrade():
     sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('phone', sa.String(length=15), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('crm'),
     sa.UniqueConstraint('email')
     )
     op.create_table('surgeries',
@@ -66,9 +68,18 @@ def upgrade():
     )
     op.create_table('professional_rating',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('rating', sa.Integer(), nullable=True),
+    sa.Column('rating', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('professional_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['professional_id'], ['professional.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('calendar',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('client_id', sa.Integer(), nullable=True),
+    sa.Column('professional_id', sa.Integer(), nullable=True),
+    sa.Column('schedule', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
     sa.ForeignKeyConstraint(['professional_id'], ['professional.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -86,8 +97,8 @@ def upgrade():
     )
     op.create_table('food_plan',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('pdf_name', sa.String(length=255)),
-    sa.Column('pdf', sa.LargeBinary()),
+    sa.Column('pdf_name', sa.String(), nullable=True),
+    sa.Column('pdf', sa.LargeBinary(), nullable=True),
     sa.Column('start_time', sa.DateTime(), nullable=True),
     sa.Column('expiration', sa.DateTime(), nullable=True),
     sa.Column('client_id', sa.Integer(), nullable=False),
@@ -110,6 +121,7 @@ def downgrade():
     op.drop_table('food_plan')
     op.drop_table('disease_client')
     op.drop_table('deficiency_client')
+    op.drop_table('calendar')
     op.drop_table('professional_rating')
     op.drop_table('clients')
     op.drop_table('surgeries')
