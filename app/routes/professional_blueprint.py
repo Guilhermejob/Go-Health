@@ -6,7 +6,7 @@ from app.controllers.professional_controllers import create, delete, get_all, ge
 bp_professional = Blueprint(
     'bp_professional', __name__, url_prefix='/professional')
 
-bp_professional.post('')(jwt_required()(create))
+bp_professional.post('')(create)
 bp_professional.get('')(get_all)
 bp_professional.get('/<int:id>')(get_by_id)
 bp_professional.get('/<int:id>/schedules')(get_schedules)

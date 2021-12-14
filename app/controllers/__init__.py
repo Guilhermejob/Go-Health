@@ -24,10 +24,11 @@ def check_user(id, model, send_type: str):
 
     return user
 
-def check_authorization(id):
-    user = get_jwt_identity()
-    if user["id"] != id:
-        raise UnauthorizedError
+
+# def check_authorization(id):
+#     user = get_jwt_identity()
+#     if user["id"] != id:
+#         raise UnauthorizedError
 
 def format_output_especific_professional(text):
     output = text.replace('(', ' ')

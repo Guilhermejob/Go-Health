@@ -1,3 +1,9 @@
+class UnsentEMailError(Exception):
+    def __init__(self):
+        self.message = "unsent email"
+        super().__init__(self.message)
+
+
 class UnauthorizedError(Exception):
     def __init__(self):
         self.message = "Unauthorized"

@@ -1,10 +1,11 @@
 from flask import jsonify, request, current_app
+from flask_jwt_extended.utils import get_jwt_identity
 from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError
-from app.controllers import check_user, check_authorization
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError, UnsentEMailError
+from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
 from re import fullmatch
@@ -123,12 +124,12 @@ def check_email(email:str):
         raise InvalidEmailError
 
 
-def update(id):
+def update():
 
     data = request.get_json()
+    user = get_jwt_identity()
     
-    try:
-        check_authorization(id)
+    try:        
         check_update_keys(data)
         check_data_values(data)
         if data.get("gender"):
@@ -144,7 +145,7 @@ def update(id):
         if surgeries:
             data["surgeries"] = surgeries
 
-        client = check_user(id,ClientModel,"client")
+        client = check_user(user["id"],ClientModel,"client")
 
         new_password = data.get("password") 
         if new_password:
@@ -218,10 +219,10 @@ def create():
     return jsonify(client), 201
 
 
-def get_by_id(id):
+def get_client():
     try:
-        check_authorization(id)
-        client = check_user(id,ClientModel,"client")
+        user = get_jwt_identity()
+        client = check_user(user["id"],ClientModel,"client")
     except NotFoundError as error:
         return jsonify(error.message),404
     except UnauthorizedError as error:
@@ -230,15 +231,42 @@ def get_by_id(id):
     return jsonify(client.serialize()), 200
 
 
+def get_by_email():
+    data = request.get_json()    
+    token = get_jwt_identity()
+    
+    try:
+        if "crm" not in token.keys():
+            raise UnauthorizedError
+        
+        if "email" not in data.keys():
+            raise UnsentEMailError
+
+        user = ClientModel.query.filter_by(email=data["email"]).first()
+
+        if not user:
+            raise NotFoundError("client")
+
+    except UnauthorizedError as error:
+        return jsonify(error.message),401
+    except NotFoundError as error:
+        return jsonify(error.message),404
+    except UnsentEMailError as error:
+        return jsonify(error.message),400
+
+    return jsonify(user.serialize()),200
+
+
+
 def get_all():
     all_clients = ClientModel.query.all()
     return jsonify(all_clients), 200
 
 
-def delete(id):
+def delete():
     try:
-        check_authorization(id)
-        client = check_user(id,ClientModel,"client")
+        user = get_jwt_identity()
+        client = check_user(user["id"],ClientModel,"client")
         current_app.db.session.delete(client)
         current_app.db.session.commit()
             

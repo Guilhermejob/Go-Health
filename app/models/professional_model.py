@@ -14,6 +14,7 @@ class ProfessionalModel(db.Model):
     final_rating: float
     email: str
     phone: str
+    crm: str
 
     __tablename__ = 'professional'
 
