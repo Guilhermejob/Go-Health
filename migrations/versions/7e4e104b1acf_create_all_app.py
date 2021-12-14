@@ -1,8 +1,8 @@
-"""incluida a tabela para agendamento de horarios
+"""create all app
 
-Revision ID: 233901d2886f
+Revision ID: 7e4e104b1acf
 Revises: 
-Create Date: 2021-12-11 17:19:39.646740
+Create Date: 2021-12-14 11:56:39.512557
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '233901d2886f'
+revision = '7e4e104b1acf'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,6 +42,7 @@ def upgrade():
     sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('phone', sa.String(length=15), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('crm'),
     sa.UniqueConstraint('email')
     )
     op.create_table('surgeries',

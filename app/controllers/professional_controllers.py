@@ -1,24 +1,43 @@
 from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
-from app.models.calendar_table import CalendarModel
-from app.excepts.professional_exceptions import InvalidDateFormat
+from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError
 from datetime import *
+import sqlalchemy
+from app.controllers import format_output_especific_professional, validate_keys_professional, validate_type_value_professional
+from app.models.calendar_table import CalendarModel
 
 
 def create():
+
     data = request.get_json()
 
-    session = current_app.db.session
+    try:
+        validate_keys_professional(data)
+        validate_type_value_professional(data)
 
-    # send hash to db
-    password_to_hash = data.pop("password")
-    professional = ProfessionalModel(**data)
-    professional.password = password_to_hash
+        session = current_app.db.session
 
-    session.add(professional)
-    session.commit()
+        data['final_rating'] = 0
 
-    return jsonify(professional), 200
+        # convert password in password_hash
+        password_to_hash = data.pop("password")
+        professional = ProfessionalModel(**data)
+        professional.password = password_to_hash
+
+        session.add(professional)
+        session.commit()
+
+        return jsonify(professional), 200
+
+    except sqlalchemy.exc.IntegrityError as err:
+        errorInfo = str(err.orig.args)
+        msg = errorInfo.split('Key')[1].split('.\\n')[0]
+        msg = format_output_especific_professional(msg)
+        return jsonify({'error': msg}), 409
+    except KeysNotAllowedError as err:
+        return jsonify(err.message), 400
+    except TypeValueError as err:
+        return jsonify(err.message), 400
 
 
 def get_all():
@@ -29,8 +48,16 @@ def get_all():
 
 
 def get_by_id(id):
-    professional = ProfessionalModel.query.filter_by(id=id).first()
-    return jsonify(professional.serialize()), 200
+
+    try:
+        professional = ProfessionalModel.query.filter_by(id=id).first()
+
+        if professional == None:
+            raise NotFoundProfessionalError
+        return jsonify(professional.serialize()), 200
+
+    except NotFoundProfessionalError as err:
+        return jsonify(err.message), 404
 
 
 def get_schedules(id):
@@ -56,8 +83,8 @@ def get_free_schedules(id):
 
     try:
         if type(data['schedule_date']) != str:
-            raise InvalidDateFormat
-    except InvalidDateFormat as error:
+            raise InvalidDateFormatError
+    except InvalidDateFormatError as error:
         return jsonify(error.message), 409
 
     try:

@@ -8,23 +8,5 @@ bp_professional = Blueprint(
 bp_professional.post('')(create)
 bp_professional.get('')(get_all)
 bp_professional.get('/<int:id>')(get_by_id)
-<<<<<<< HEAD
 bp_professional.get('/<int:id>/schedules')(get_schedules)
 bp_professional.post('/<int:id>/free_schedules')(get_free_schedules)
-
-
-bp_teste = Blueprint('bp_teste', __name__)
-
-
-@bp_teste.get("/")
-def testando():
-    return {"rotas": {
-        "get_all_clients": "/clients",
-        "get_client_by_id": "/clients/<int:id>",
-        "create_client": "/clients",
-        "get_all_professionals": "/professional",
-        "get_professional_by_id": "/professional/<int:id>",
-        "create_professional": "/professional"
-    }}, 200
-=======
->>>>>>> c1035532017beaba4cff5b6ee9c9f7b9504de314
