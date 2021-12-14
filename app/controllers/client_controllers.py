@@ -1,13 +1,13 @@
 from flask import jsonify, request, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
-from app.controllers import check_user
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError
+from app.controllers import check_user, check_authorization
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
+from re import fullmatch
 
 
 def add_diseases_deficiencies_surgeries(items, model):
@@ -61,7 +61,7 @@ def check_update_keys(data):
             raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
 
 
-def check_data_keys(data):
+def check_create_data_keys(data):
     if (len(data) < len(ClientModel.mandatory_keys)) or (len(data) > (len(ClientModel.mandatory_keys) + len(ClientModel.optional_keys))):
         raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
 
@@ -113,13 +113,18 @@ def check_gender(gender:str):
 
 
 def check_email(email:str):
-    if not (("@" in email) and ("." in email.split("@")[-1])):
+    pattern = "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    is_valid = fullmatch(pattern,email)
+    if not is_valid:
         raise InvalidEmailError
 
 
 def update(id):
+
     data = request.get_json()
+    
     try:
+        check_authorization(id,"client_id")
         check_update_keys(data)
         check_data_values(data)
         if data.get("gender"):
@@ -150,6 +155,8 @@ def update(id):
 
     except NotFoundError as error:
         return jsonify(error.message),404
+    except UnauthorizedError as error:
+        return jsonify(error.message),401
     except InvalidKeysError as error:
         return jsonify(error.message), 400
     except InvalidValueTypeError as error:
@@ -161,14 +168,18 @@ def update(id):
     except IntegrityError:
         return jsonify({"message":"email already exists"}),409
 
-    return jsonify(client),201
+    result = client.serialize()
+    result.pop("food_plan")
+    result.pop("professional")
+
+    return jsonify(result),201
 
 
 def create():
     data = request.get_json()
     
     try:
-        check_data_keys(data)
+        check_create_data_keys(data)
         check_data_values(data)
         check_gender(data["gender"])
         check_email(data["email"])
@@ -203,17 +214,33 @@ def create():
     return jsonify(client), 201
 
 
-@jwt_required()
 def get_by_id(id):
     try:
+        check_authorization(id,"client_id")
         client = check_user(id,ClientModel,"client")
     except NotFoundError as error:
         return jsonify(error.message),404
+    except UnauthorizedError as error:
+        return jsonify(error.message),401
 
     return jsonify(client.serialize()), 200
 
 
-@jwt_required()
 def get_all():
     all_clients = ClientModel.query.all()
     return jsonify(all_clients), 200
+
+
+def delete(id):
+    try:
+        check_authorization(id,"client_id")
+        client = check_user(id,ClientModel,"client")
+        current_app.db.session.delete(client)
+        current_app.db.session.commit()
+            
+    except NotFoundError as error:
+        return jsonify(error.message),404
+    except UnauthorizedError as error:
+        return jsonify(error.message),401
+    
+    return "",204

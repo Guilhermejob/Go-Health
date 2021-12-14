@@ -16,7 +16,7 @@ class ClientModel(db.Model):
     __tablename__ = 'clients'
 
     mandatory_keys = ["name","last_name","age","email","password","gender","height","weigth"]
-    optional_keys = ["diseases","surgeries","deficiencies"]
+    optional_keys = ["diseases","surgeries","deficiencies","professional_id"]
 
     client_id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
@@ -32,6 +32,7 @@ class ClientModel(db.Model):
     professional_id = Column(Integer, ForeignKey('professional.id'))
 
     food_plan = relationship("FoodPlanModel",backref=backref("client",uselist=False))
+    professional = relationship("ProfessionalModel", backref="clients", uselist=False)
 
     @property
     def password(self):
@@ -57,5 +58,6 @@ class ClientModel(db.Model):
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
             "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
+            "professional": self.professional,
             "food_plan": [plan for plan in self.food_plan]
         }
