@@ -1,3 +1,4 @@
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
@@ -8,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @dataclass
 class ClientModel(db.Model):
-    client_id: int
+    id: int
     name: str
     last_name: str
     email: str
@@ -18,7 +19,7 @@ class ClientModel(db.Model):
     mandatory_keys = ["name","last_name","age","email","password","gender","height","weigth"]
     optional_keys = ["diseases","surgeries","deficiencies","professional_id"]
 
-    client_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
@@ -61,3 +62,9 @@ class ClientModel(db.Model):
             "professional": self.professional,
             "food_plan": [plan for plan in self.food_plan]
         }
+
+    schedules_clients = relationship(
+        "ProfessionalModel",
+        secondary='calendar',
+        backref="schedules"
+    )

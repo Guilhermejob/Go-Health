@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def create_app():
 
     app = Flask(__name__)
@@ -19,7 +20,7 @@ def create_app():
 
     database.init_app(app)
     migrations.init_app(app)
-    auth.JWTManager(app)
+    auth.init_app(app)
     routes.init_app(app)
     exceptions.init_app(app)
 

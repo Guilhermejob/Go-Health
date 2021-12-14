@@ -1,4 +1,3 @@
-from typing import BinaryIO
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary
 from datetime import datetime, timedelta
@@ -22,5 +21,5 @@ class FoodPlanModel(db.Model):
     expiration = Column(
         DateTime, default=datetime.utcnow() + timedelta(days=90))
     client_id = Column(Integer, ForeignKey(
-        'clients.client_id'), nullable=False)
+        'clients.id'), nullable=False)
     professional_id = Column(Integer, nullable=False)
