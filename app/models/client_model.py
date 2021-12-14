@@ -1,3 +1,4 @@
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
@@ -52,3 +53,9 @@ class ClientModel(db.Model):
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
             "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies]
         }
+
+    schedules_clients = relationship(
+        "ProfessionalModel",
+        secondary='calendar',
+        backref="schedules"
+    )

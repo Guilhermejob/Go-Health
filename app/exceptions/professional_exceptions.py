@@ -41,3 +41,13 @@ class TypeValueError(Exception):
         }
 
         super().__init__(self.message)
+
+
+class InvalidDateFormatError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': 'Invalid format! Format valid dd/mm/aaaa!'
+        }
+
+        super().__init__(self.message)
