@@ -1,8 +1,8 @@
-"""create all app
+"""create tables
 
-Revision ID: 7e4e104b1acf
+Revision ID: f86bfbcaede8
 Revises: 
-Create Date: 2021-12-14 11:56:39.512557
+Create Date: 2021-12-14 14:05:19.992424
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7e4e104b1acf'
+revision = 'f86bfbcaede8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -51,7 +51,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('surgery_id')
     )
     op.create_table('clients',
-    sa.Column('client_id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('last_name', sa.String(length=100), nullable=False),
     sa.Column('age', sa.Integer(), nullable=False),
@@ -63,7 +63,7 @@ def upgrade():
     sa.Column('imc', sa.Float(), nullable=False),
     sa.Column('professional_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['professional_id'], ['professional.id'], ),
-    sa.PrimaryKeyConstraint('client_id'),
+    sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
     op.create_table('professional_rating',
@@ -79,20 +79,20 @@ def upgrade():
     sa.Column('client_id', sa.Integer(), nullable=True),
     sa.Column('professional_id', sa.Integer(), nullable=True),
     sa.Column('schedule', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['professional_id'], ['professional.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('deficiency_client',
     sa.Column('client_id', sa.Integer(), nullable=True),
     sa.Column('deficiency_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['deficiency_id'], ['deficiencies.deficiency_id'], )
     )
     op.create_table('disease_client',
     sa.Column('client_id', sa.Integer(), nullable=True),
     sa.Column('disease_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['disease_id'], ['diseases.disease_id'], )
     )
     op.create_table('food_plan',
@@ -103,13 +103,13 @@ def upgrade():
     sa.Column('expiration', sa.DateTime(), nullable=True),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('professional_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('surgery_client',
     sa.Column('client_id', sa.Integer(), nullable=True),
     sa.Column('surgery_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['surgery_id'], ['surgeries.surgery_id'], )
     )
     # ### end Alembic commands ###

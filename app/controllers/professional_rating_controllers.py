@@ -9,7 +9,7 @@ def set_rating(id):
     client = ClientModel.query.get(1)
     professional = ProfessionalModel.query.get(id)
 
-    rating = ProfessionalRatingModel(rating = data["rating"], client_id = client.client_id, professional_id = professional.id)
+    rating = ProfessionalRatingModel(rating = data["rating"], client_id = client.id, professional_id = professional.id)
 
     current_app.db.session.add(rating)
 
