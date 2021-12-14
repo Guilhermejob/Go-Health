@@ -30,6 +30,11 @@ def download_food_plan(food_plan_id: int):
 
 def create_plan(client_id: int):
     try:
+
+        pdf = request.files
+        if not "file" in pdf.keys():
+            return {"message": "missing key 'file'"}, 400
+
         pdf = request.files['file']
         filename = check_pdf_extension(pdf.filename)
 
