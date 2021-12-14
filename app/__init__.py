@@ -19,7 +19,7 @@ def create_app():
 
     database.init_app(app)
     migrations.init_app(app)
-    auth.JWTManager(app)
+    auth.init_app(app)
     routes.init_app(app)
     exceptions.init_app(app)
 
