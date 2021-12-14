@@ -1,4 +1,5 @@
 from flask import jsonify, request, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
@@ -202,6 +203,7 @@ def create():
     return jsonify(client), 201
 
 
+@jwt_required()
 def get_by_id(id):
     try:
         client = check_user(id,ClientModel,"client")
@@ -211,6 +213,7 @@ def get_by_id(id):
     return jsonify(client.serialize()), 200
 
 
+@jwt_required()
 def get_all():
     all_clients = ClientModel.query.all()
     return jsonify(all_clients), 200
