@@ -30,6 +30,11 @@ def download_food_plan(food_plan_id: int):
 
 def create_plan(client_id: int):
     try:
+
+        pdf = request.files
+        if not "file" in pdf.keys():
+            return {"message": "missing key 'file'"}, 400
+
         pdf = request.files['file']
         filename = check_pdf_extension(pdf.filename)
 
@@ -44,7 +49,7 @@ def create_plan(client_id: int):
         return jsonify(error.message), 400
 
     send_pdf = FoodPlanModel(pdf_name=filename, pdf=pdf.read(
-    ), client_id=client.client_id, professional_id=professional.id)
+    ), client_id=client.id, professional_id=professional.id)
 
     current_app.db.session.add(send_pdf)
     current_app.db.session.commit()

@@ -21,14 +21,12 @@ def set_rating(professional_id: int):
         if not professional:
             raise NotFoundProfessionalError
         
-        verify_rating = ProfessionalRatingModel.query.filter_by(client_id=client['client_id']).first()
-        
-        print(verify_rating)
+        verify_rating = ProfessionalRatingModel.query.filter_by(client_id=client['id']).first()
         
         if verify_rating:
             raise AlreadyRatingError
         
-        rating = ProfessionalRatingModel(rating = data['rating'], client_id = client['client_id'], professional_id = professional.id)
+        rating = ProfessionalRatingModel(rating = data['rating'], client_id = client['id'], professional_id = professional.id)
 
         current_app.db.session.add(rating)
 
