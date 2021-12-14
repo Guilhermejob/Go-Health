@@ -4,6 +4,8 @@ from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
 from app.models.calendar_table import CalendarModel
+from app.models.professional_model import ProfessionalModel
+from app.excepts.professional_exceptions import InvalidDateFormat
 from datetime import *
 
 
@@ -87,16 +89,31 @@ def schedule_appointment(id):
 
     data = request.get_json()
 
+    try:
+        if type(data['schedule_date']) != str:
+            raise InvalidDateFormat
+    except InvalidDateFormat as error:
+        return jsonify(error.message), 409
+
     schedule_date = data.pop('schedule_date')
 
-    schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
+    try:
+        schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
+    except:
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
 
     schedules_found = CalendarModel.query.filter_by(professional_id=id).all()
 
     check_false = []
 
+    try:
+        professional = ProfessionalModel.query.get_or_404(id)
+
+    except:
+        return jsonify({'msg': 'error not found'}), 404
+
     if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
-        return 'é fim de semana'
+        return jsonify({"msg": 'appointments cannot be scheduled over the weekend'}), 409
 
     else:
         for schedule_found in schedules_found:
@@ -110,7 +127,7 @@ def schedule_appointment(id):
 
     if False in check_false:
 
-        return 'horario indisponivel'
+        return jsonify({'msg': 'busy schedule'}), 409
     else:
         data['schedule'] = schedule_date
 

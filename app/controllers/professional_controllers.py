@@ -1,6 +1,7 @@
 from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
 from app.models.calendar_table import CalendarModel
+from app.excepts.professional_exceptions import InvalidDateFormat
 from datetime import *
 
 
@@ -54,6 +55,12 @@ def get_free_schedules(id):
     data = request.get_json()
 
     try:
+        if type(data['schedule_date']) != str:
+            raise InvalidDateFormat
+    except InvalidDateFormat as error:
+        return jsonify(error.message), 409
+
+    try:
         professional = ProfessionalModel.query.get_or_404(id)
 
     except:
@@ -62,7 +69,7 @@ def get_free_schedules(id):
     try:
         schedule_date = datetime.strptime(data['schedule_date'], "%d/%m/%Y")
     except:
-        return jsonify({'msg': 'currect date format : dd/mm/YYYY'})
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
 
     schedule_date = schedule_date + timedelta(hours=9)
 
