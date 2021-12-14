@@ -6,7 +6,7 @@ from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
 from app.models.calendar_table import CalendarModel
 from app.models.professional_model import ProfessionalModel
-from app.excepts.professional_exceptions import InvalidDateFormat
+from app.exceptions.professional_exceptions import InvalidDateFormatError
 from datetime import *
 
 
@@ -94,8 +94,8 @@ def schedule_appointment(id):
 
     try:
         if type(data['schedule_date']) != str:
-            raise InvalidDateFormat
-    except InvalidDateFormat as error:
+            raise InvalidDateFormatError
+    except InvalidDateFormatError as error:
         return jsonify(error.message), 409
 
     schedule_date = data.pop('schedule_date')
