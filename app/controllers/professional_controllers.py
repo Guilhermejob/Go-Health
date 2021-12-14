@@ -1,8 +1,8 @@
 from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
-from app.exceptions.professional_exceptions import NotFoundProfessionalError
+from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError
 import sqlalchemy
-from app.controllers import format_output_especific_professional
+from app.controllers import format_output_especific_professional, validate_keys_professional, validate_type_value_professional
 
 
 def create():
@@ -10,8 +10,12 @@ def create():
     data = request.get_json()
 
     try:
+        validate_keys_professional(data)
+        validate_type_value_professional(data)
 
         session = current_app.db.session
+
+        data['final_rating'] = 0
 
         # convert password in password_hash
         password_to_hash = data.pop("password")
@@ -28,6 +32,10 @@ def create():
         msg = errorInfo.split('Key')[1].split('.\\n')[0]
         msg = format_output_especific_professional(msg)
         return jsonify({'error': msg}), 409
+    except KeysNotAllowedError as err:
+        return jsonify(err.message), 400
+    except TypeValueError as err:
+        return jsonify(err.message), 400
 
 
 def get_all():
