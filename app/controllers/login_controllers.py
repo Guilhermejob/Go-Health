@@ -4,6 +4,7 @@ from app.exceptions.login_exceptions import EmailNotFoundError, IncorrectPasswor
 from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 
+
 @jwt_required()
 def get_user_info():
     user = get_jwt_identity()

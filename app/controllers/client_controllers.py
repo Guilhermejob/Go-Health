@@ -4,14 +4,14 @@ from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError, UnsentEMailError
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
 from re import fullmatch
 from app.models.calendar_table import CalendarModel
 from app.models.professional_model import ProfessionalModel
-from app.exceptions.professional_exceptions import InvalidDateFormatError, NotFoundProfessionalError
+from app.exceptions.professional_exceptions import InvalidDateFormatError
 from datetime import *
 
 
@@ -79,7 +79,6 @@ def check_create_data_keys(data):
 
 def check_data_values(data):
 
-    # "name","last_name","age","email","password","gender","height","weigth"
     for key,value in data.items():
         if ((
             key == "name" or
@@ -96,7 +95,6 @@ def check_data_values(data):
         if key == "age" and type(value) != int:
             raise InvalidValueTypeError(data)
         
-        # "diseases","surgeries","deficiencies" - [{"name":"string"}]
         if (key == "diseases" or key == "surgeries" or key == "deficiencies"):
             if type(value) != list:
                 raise InvalidValueTypeError(data)
@@ -228,32 +226,6 @@ def get_client(id):
         return jsonify(err.message), 404
 
     return jsonify(client.serialize()), 200
-
-# def get_by_email():
-#     data = request.get_json()    
-#     token = get_jwt_identity()
-    
-#     try:
-#         if "crm" not in token.keys():
-#             raise UnauthorizedError
-        
-#         if "email" not in data.keys():
-#             raise UnsentEMailError
-
-#         user = ClientModel.query.filter_by(email=data["email"]).first()
-
-#         if not user:
-#             raise NotFoundError("client")
-
-#     except UnauthorizedError as error:
-#         return jsonify(error.message),401
-#     except NotFoundError as error:
-#         return jsonify(error.message),404
-#     except UnsentEMailError as error:
-#         return jsonify(error.message),400
-
-#     return jsonify(user.serialize()),200
-
 
 
 def get_all():

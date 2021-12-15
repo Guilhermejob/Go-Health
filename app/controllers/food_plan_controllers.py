@@ -10,10 +10,6 @@ import io
 
 def get_food_plan_by_client_id(client_id: int):
     try:
-<<<<<<< HEAD
-=======
-        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()
->>>>>>> 3fed9b73ddb4be0e859da1a60c5e0abfe9ddb635
         check_user(client_id, ClientModel, 'client')
         food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()     
 

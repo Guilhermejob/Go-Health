@@ -1,8 +1,6 @@
 from app.exceptions.food_plan_exceptions import InvalidFileError, InvalidKeyValueError, NotFoundError
-from app.exceptions.client_exceptions import UnauthorizedError
 from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError
 from werkzeug.utils import secure_filename
-from flask_jwt_extended import get_jwt_identity
 
 
 def check_pdf_extension(filename: str):
@@ -24,11 +22,6 @@ def check_user(id, model, send_type: str):
 
     return user
 
-
-# def check_authorization(id):
-#     user = get_jwt_identity()
-#     if user["id"] != id:
-#         raise UnauthorizedError
 
 def format_output_especific_professional(text):
     output = text.replace('(', ' ')
