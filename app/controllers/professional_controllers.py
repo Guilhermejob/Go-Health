@@ -8,7 +8,6 @@ from datetime import *
 import sqlalchemy
 from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional, check_type_and_format_email, check_type_and_format_phone
 from app.models.calendar_table import CalendarModel
-import re
 
 
 def create():
