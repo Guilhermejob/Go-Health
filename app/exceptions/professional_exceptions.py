@@ -51,3 +51,13 @@ class InvalidDateFormatError(Exception):
         }
 
         super().__init__(self.message)
+
+
+class MissingFieldError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': 'Some keys are missing!'
+        }
+
+        super().__init__(self.message)

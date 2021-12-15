@@ -2,11 +2,11 @@ from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
-from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError
+from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError, MissingFieldError
 from app.exceptions.food_plan_exceptions import NotFoundError
 from datetime import *
 import sqlalchemy
-from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional
+from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional
 from app.models.calendar_table import CalendarModel
 
 
@@ -15,6 +15,7 @@ def create():
     data = request.get_json()
 
     try:
+        check_all_fields_professional(data)
         validate_keys_professional(data)
         validate_type_value_professional(data)
 
@@ -41,6 +42,8 @@ def create():
         return jsonify(err.message), 400
     except TypeValueError as err:
         return jsonify(err.message), 400
+    except MissingFieldError as err:
+        return jsonify(err.message), 400
 
 
 def get_all():
@@ -55,56 +58,69 @@ def get_by_id(id):
     try:
         professional = ProfessionalModel.query.filter_by(id=id).first()
 
-        if professional == None:
+        if not professional:
             raise NotFoundProfessionalError
-        return jsonify(professional.serialize()), 200
-
+        return jsonify(professional), 200
     except NotFoundProfessionalError as err:
         return jsonify(err.message), 404
-    
-    
-def update():
-    
-    data = request.get_json()
-    
-    professional = get_jwt_identity()
-    
-    if 'password' in data.keys():
-        password_to_hash = data.pop('password')
-        data['password_hash'] = generate_password_hash(password_to_hash)
-    
-    ProfessionalModel.query.filter_by(email=professional['email']).update(data)
 
-    current_app.db.session.commit()
-    
-    if 'password_hash' in data.keys():
-        data.pop('password_hash')
-        
-    return jsonify(data), 200
+
+# tratamento de error pra chaves
+def update():
+
+    data = request.get_json()
+
+    try:
+        validate_keys_professional(data)
+        validate_type_value_professional(data)
+
+        professional = get_jwt_identity()
+
+        if not professional:
+            raise NotFoundProfessionalError
+
+        if 'password' in data.keys():
+            password_to_hash = data.pop('password')
+            data['password_hash'] = generate_password_hash(password_to_hash)
+
+        ProfessionalModel.query.filter_by(
+            email=professional['email']).update(data)
+
+        current_app.db.session.commit()
+
+        if 'password_hash' in data.keys():
+            data.pop('password_hash')
+
+        return jsonify(data), 200
+    except NotFoundProfessionalError as err:
+        return jsonify(err.message), 404
+    except KeysNotAllowedError as err:
+        return jsonify(err.message), 400
+    except TypeValueError as err:
+        return jsonify(err.message), 400
 
 
 def delete():
-    
+
     try:
         user = get_jwt_identity()
-        professional = check_user(user["id"],ProfessionalModel,"professional")
-        
+        professional = check_user(
+            user["id"], ProfessionalModel, "professional")
+
         current_app.db.session.delete(professional)
         current_app.db.session.commit()
-    
+
     except NotFoundError as error:
-        return jsonify(error.message),404
-    
+        return jsonify(error.message), 404
+
     return "", 204
-    
+
 
 def get_schedules(id):
     schedules = CalendarModel.query.all()
 
     schedules_found = [
         schedule for schedule in schedules if schedule.professional_id == id]
-
-    print(schedules_found)
 
     return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
 
