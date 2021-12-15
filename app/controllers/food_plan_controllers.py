@@ -10,8 +10,8 @@ import io
 
 def get_food_plan_by_client_id(client_id: int):
     try:
-        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()
         check_user(client_id, ClientModel, 'client')
+        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()     
 
     except NotFoundError as error:
         return jsonify(error.message), 404
