@@ -1,20 +1,25 @@
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship,backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
 @dataclass
 class ClientModel(db.Model):
-    client_id: int
+    id: int
     name: str
     last_name: str
     email: str
 
     __tablename__ = 'clients'
 
-    client_id = Column(Integer, primary_key=True)
+    mandatory_keys = ["name","last_name","age","email","password","gender","height","weigth"]
+    optional_keys = ["diseases","surgeries","deficiencies","professional_id"]
+
+    id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
@@ -26,6 +31,9 @@ class ClientModel(db.Model):
     imc = Column(Float, nullable=False)
 
     professional_id = Column(Integer, ForeignKey('professional.id'))
+
+    food_plan = relationship("FoodPlanModel",backref=backref("client",uselist=False))
+    professional = relationship("ProfessionalModel", backref="clients", uselist=False)
 
     @property
     def password(self):
@@ -50,5 +58,13 @@ class ClientModel(db.Model):
             "imc": self.imc,
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
-            "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies]
+            "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
+            "professional": self.professional,
+            "food_plan": [plan for plan in self.food_plan]
         }
+
+    schedules_clients = relationship(
+        "ProfessionalModel",
+        secondary='calendar',
+        backref="schedules"
+    )

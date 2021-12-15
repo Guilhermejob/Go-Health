@@ -1,5 +1,6 @@
 from flask import Blueprint
-from app.controllers.professional_controllers import create, get_all, get_by_id
+from flask_jwt_extended import jwt_required
+from app.controllers.professional_controllers import create, delete, get_all, get_by_id, get_schedules, get_free_schedules, update, delete
 
 
 bp_professional = Blueprint(
@@ -7,16 +8,8 @@ bp_professional = Blueprint(
 
 bp_professional.post('')(create)
 bp_professional.get('')(get_all)
-bp_professional.get('/<int:id>')(get_by_id)
-
-bp_teste = Blueprint('bp_teste',__name__)
-@bp_teste.get("/")
-def testando():
-    return {"rotas":{
-        "get_all_clients": "/clients",
-        "get_client_by_id": "/clients/<int:id>",
-        "create_client": "/clients",
-        "get_all_professionals": "/professional",
-        "get_professional_by_id": "/professional/<int:id>",
-        "create_professional": "/professional"
-    }},200
+bp_professional.get('/<int:id>')(jwt_required()(get_by_id))
+bp_professional.get('/<int:id>/schedules')(get_schedules)
+bp_professional.post('/<int:id>/free_schedules')(get_free_schedules)
+bp_professional.patch('')(jwt_required()(update))
+bp_professional.delete('')(jwt_required()(delete))
