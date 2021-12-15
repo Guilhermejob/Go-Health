@@ -1,6 +1,7 @@
 from app.exceptions.food_plan_exceptions import InvalidFileError, InvalidKeyValueError, NotFoundError
-from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError, MissingFieldError
+from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError, MissingFieldError, TypeKeyEmailError, TypeKeyPhoneError
 from werkzeug.utils import secure_filename
+import re
 
 
 def check_pdf_extension(filename: str):
@@ -78,3 +79,23 @@ def check_all_fields_professional(data):
 
     if len(allowed_keys) > len(keys):
         raise MissingFieldError
+
+
+def check_type_and_format_email(data):
+    regex_email = "(\w*\@\w*\.\w*)"
+
+    if data.get('email'):
+        if type(data['email']) != str:
+            raise TypeKeyEmailError
+        if re.fullmatch(regex_email, data["email"]) == None:
+            raise TypeKeyEmailError
+
+
+def check_type_and_format_phone(data):
+    regex_tel = "(\(\d{2}\))(\d{5}\-\d{4})"
+
+    if data.get('phone'):
+        if type(data['phone']) != str:
+            raise TypeKeyPhoneError
+        if re.fullmatch(regex_tel, data["phone"]) == None:
+            raise TypeKeyPhoneError

@@ -2,12 +2,13 @@ from flask import jsonify, request, current_app
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
-from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError, MissingFieldError
+from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError, MissingFieldError, TypeKeyEmailError, TypeKeyPhoneError
 from app.exceptions.food_plan_exceptions import NotFoundError
 from datetime import *
 import sqlalchemy
-from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional
+from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional, check_type_and_format_email, check_type_and_format_phone
 from app.models.calendar_table import CalendarModel
+import re
 
 
 def create():
@@ -18,12 +19,13 @@ def create():
         check_all_fields_professional(data)
         validate_keys_professional(data)
         validate_type_value_professional(data)
+        check_type_and_format_email(data)
+        check_type_and_format_phone(data)
 
         session = current_app.db.session
 
         data['final_rating'] = 0
 
-        # convert password in password_hash
         password_to_hash = data.pop("password")
         professional = ProfessionalModel(**data)
         professional.password = password_to_hash
@@ -43,6 +45,10 @@ def create():
     except TypeValueError as err:
         return jsonify(err.message), 400
     except MissingFieldError as err:
+        return jsonify(err.message), 400
+    except TypeKeyEmailError as err:
+        return jsonify(err.message), 400
+    except TypeKeyPhoneError as err:
         return jsonify(err.message), 400
 
 
@@ -65,7 +71,6 @@ def get_by_id(id):
         return jsonify(err.message), 404
 
 
-# tratamento de error pra chaves
 def update():
 
     data = request.get_json()
@@ -83,6 +88,9 @@ def update():
             password_to_hash = data.pop('password')
             data['password_hash'] = generate_password_hash(password_to_hash)
 
+        check_type_and_format_email(data)
+        check_type_and_format_phone(data)
+
         ProfessionalModel.query.filter_by(
             email=professional['email']).update(data)
 
@@ -97,6 +105,10 @@ def update():
     except KeysNotAllowedError as err:
         return jsonify(err.message), 400
     except TypeValueError as err:
+        return jsonify(err.message), 400
+    except TypeKeyEmailError as err:
+        return jsonify(err.message), 400
+    except TypeKeyPhoneError as err:
         return jsonify(err.message), 400
 
 

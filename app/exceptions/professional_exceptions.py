@@ -61,3 +61,23 @@ class MissingFieldError(Exception):
         }
 
         super().__init__(self.message)
+
+
+class TypeKeyEmailError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': "Email invalid! Email allowed 'example@mail.com'"
+        }
+
+        super().__init__(self.message)
+
+
+class TypeKeyPhoneError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': "Phone invalid! Phone allowed '(00)00000-0000'"
+        }
+
+        super().__init__(self.message)
