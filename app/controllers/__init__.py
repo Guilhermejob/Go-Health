@@ -1,5 +1,9 @@
 from app.exceptions.food_plan_exceptions import InvalidFileError, InvalidKeyValueError, NotFoundError
+<<<<<<< HEAD
 from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError
+=======
+from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError, MissingFieldError
+>>>>>>> feature/get_client_schedules
 from werkzeug.utils import secure_filename
 
 
@@ -57,3 +61,24 @@ def validate_type_value_professional(data):
     for key, value in data.items():
         if type(value) != str and type(value) != int:
             raise TypeValueError(key, value)
+
+
+def check_all_fields_professional(data):
+    allowed_keys = [
+        'name',
+        'last_name',
+        'gender',
+        'age',
+        'specialization',
+        'description',
+        'final_rating',
+        'crm',
+        'email',
+        'password',
+        'phone',
+    ]
+
+    keys = [key for key in data.keys()]
+
+    if len(allowed_keys) > len(keys):
+        raise MissingFieldError

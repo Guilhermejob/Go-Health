@@ -6,4 +6,5 @@ from flask_jwt_extended import jwt_required
 bp_professional_rating = Blueprint(
     'bp_professional_rating', __name__, url_prefix='/professional_rating')
 
-bp_professional_rating.post('<int:professional_id>')(jwt_required()(set_rating))
+bp_professional_rating.post('<int:professional_id>')(
+    jwt_required()(set_rating))
