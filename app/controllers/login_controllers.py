@@ -46,7 +46,7 @@ def signin_professional():
     data = request.get_json()
 
     try:
-        if len(data) > 2 or not 'email' or 'password' in data.keys():
+        if len(data) > 2 or not 'email' in data.keys() or not 'password' in data.keys():
             raise InvalidKeyError(data)
 
         formatted_email = f"%{data['email']}%"

@@ -66,6 +66,10 @@ class ClientModel(db.Model):
 
 
     def serialize(self):
+        professional = self.schedules
+        if professional:
+            professional = self.schedules[-1]
+
         return {
             "name": self.name,
             "last_name": self.last_name,
@@ -78,6 +82,6 @@ class ClientModel(db.Model):
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
             "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
-            "professional": self.schedules[-1],
+            "professional": professional,
             "food_plan": [plan for plan in self.food_plan]
         }

@@ -66,7 +66,8 @@ def get_by_id(id):
 
         if not professional:
             raise NotFoundProfessionalError
-        return jsonify(professional), 200
+        return jsonify(professional.serialize()), 200
+
     except NotFoundProfessionalError as err:
         return jsonify(err.message), 404
 
