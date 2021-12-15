@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from re import fullmatch
 from app.models.calendar_table import CalendarModel
 from app.models.professional_model import ProfessionalModel
-from app.exceptions.professional_exceptions import InvalidDateFormatError
+from app.exceptions.professional_exceptions import InvalidDateFormatError, NotFoundProfessionalError
 from datetime import *
 
 
@@ -219,42 +219,40 @@ def create():
     return jsonify(client), 201
 
 
-def get_client():
+def get_client(id):
+
     try:
-        user = get_jwt_identity()
-        client = check_user(user["id"],ClientModel,"client")
-    except NotFoundError as error:
-        return jsonify(error.message),404
-    except UnauthorizedError as error:
-        return jsonify(error.message),401
+        client = check_user(id, ClientModel, 'client')
+
+    except NotFoundError as err:
+        return jsonify(err.message), 404
 
     return jsonify(client.serialize()), 200
 
-
-def get_by_email():
-    data = request.get_json()    
-    token = get_jwt_identity()
+# def get_by_email():
+#     data = request.get_json()    
+#     token = get_jwt_identity()
     
-    try:
-        if "crm" not in token.keys():
-            raise UnauthorizedError
+#     try:
+#         if "crm" not in token.keys():
+#             raise UnauthorizedError
         
-        if "email" not in data.keys():
-            raise UnsentEMailError
+#         if "email" not in data.keys():
+#             raise UnsentEMailError
 
-        user = ClientModel.query.filter_by(email=data["email"]).first()
+#         user = ClientModel.query.filter_by(email=data["email"]).first()
 
-        if not user:
-            raise NotFoundError("client")
+#         if not user:
+#             raise NotFoundError("client")
 
-    except UnauthorizedError as error:
-        return jsonify(error.message),401
-    except NotFoundError as error:
-        return jsonify(error.message),404
-    except UnsentEMailError as error:
-        return jsonify(error.message),400
+#     except UnauthorizedError as error:
+#         return jsonify(error.message),401
+#     except NotFoundError as error:
+#         return jsonify(error.message),404
+#     except UnsentEMailError as error:
+#         return jsonify(error.message),400
 
-    return jsonify(user.serialize()),200
+#     return jsonify(user.serialize()),200
 
 
 
@@ -272,8 +270,6 @@ def delete():
             
     except NotFoundError as error:
         return jsonify(error.message),404
-    except UnauthorizedError as error:
-        return jsonify(error.message),401
     
     return "",204
 

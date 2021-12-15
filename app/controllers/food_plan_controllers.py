@@ -1,4 +1,5 @@
 from flask import request, jsonify, current_app, send_file
+from flask_jwt_extended.utils import get_jwt_identity
 from app.controllers import check_user, check_pdf_extension
 from app.models.client_model import ClientModel
 from app.models.food_plan_model import FoodPlanModel
@@ -37,9 +38,13 @@ def create_plan(client_id: int):
 
         pdf = request.files['file']
         filename = check_pdf_extension(pdf.filename)
+        user = get_jwt_identity()
 
-        professional = check_user(1, ProfessionalModel, "professional")
+        professional = check_user(user['id'], ProfessionalModel, "professional")
         client = check_user(client_id, ClientModel, "client")
+        
+        client.professional_id = professional.id
+        current_app.db.session.add(client)
 
     except InvalidKeyValueError as error:
         return jsonify(error.message), 400
