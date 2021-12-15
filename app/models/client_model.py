@@ -3,8 +3,10 @@ from sqlalchemy.sql.schema import ForeignKey
 from app.configs.database import db
 from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, Float
-from sqlalchemy.orm import relationship,backref
+from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from app.exceptions.client_exceptions import UnauthorizedError
 
 
 @dataclass
@@ -16,8 +18,10 @@ class ClientModel(db.Model):
 
     __tablename__ = 'clients'
 
-    mandatory_keys = ["name","last_name","age","email","password","gender","height","weigth"]
-    optional_keys = ["diseases","surgeries","deficiencies","professional_id"]
+    mandatory_keys = ["name", "last_name", "age",
+                      "email", "password", "gender", "height", "weigth"]
+    optional_keys = ["diseases", "surgeries",
+                     "deficiencies", "professional_id"]
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
@@ -30,10 +34,19 @@ class ClientModel(db.Model):
     weigth = Column(Float, nullable=False)
     imc = Column(Float, nullable=False)
 
-    professional_id = Column(Integer, ForeignKey('professional.id'))
+    # professional_id = Column(Integer, ForeignKey('professional.id'))
 
-    food_plan = relationship("FoodPlanModel",backref=backref("client",uselist=False))
-    professional = relationship("ProfessionalModel", backref="clients", uselist=False)
+    food_plan = relationship(
+        "FoodPlanModel", backref=backref("client", uselist=False))
+    # professional = relationship(
+    #     "ProfessionalModel", backref="clients", uselist=False)
+
+    schedules = relationship(
+        "ProfessionalModel",
+        secondary='calendar',
+        backref="schedules",
+        # uselist=False
+    )
 
     @property
     def password(self):
@@ -45,6 +58,15 @@ class ClientModel(db.Model):
 
     def check_password(self, password_to_compare):
         return check_password_hash(self.password_hash, password_to_compare)
+
+    def check_professional(self, professional_id):
+
+        if not self.schedules:
+            raise UnauthorizedError(
+                'You not have any appointment whith this client')
+        if professional_id != self.schedules[-1].id:
+            raise UnauthorizedError(
+                'You do not have anymore appointment whith this client')
 
     def serialize(self):
         return {
@@ -59,12 +81,7 @@ class ClientModel(db.Model):
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
             "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
-            "professional": self.professional,
+            # "professional": self.professional,
+            "professional": self.schedules[-1],
             "food_plan": [plan for plan in self.food_plan]
         }
-
-    schedules_clients = relationship(
-        "ProfessionalModel",
-        secondary='calendar',
-        backref="schedules"
-    )
