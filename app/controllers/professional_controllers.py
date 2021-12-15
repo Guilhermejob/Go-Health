@@ -3,9 +3,10 @@ from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
 from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError
+from app.exceptions.food_plan_exceptions import NotFoundError
 from datetime import *
 import sqlalchemy
-from app.controllers import format_output_especific_professional, validate_keys_professional, validate_type_value_professional
+from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional
 from app.models.calendar_table import CalendarModel
 
 
@@ -83,14 +84,19 @@ def update():
 
 
 def delete():
-    professional = get_jwt_identity()
     
-    ProfessionalModel.query.filter_by(email=professional['email']).delete()
+    try:
+        user = get_jwt_identity()
+        professional = check_user(user["id"],ProfessionalModel,"professional")
+        
+        current_app.db.session.delete(professional)
+        current_app.db.session.commit()
     
-    current_app.db.session.commit()
+    except NotFoundError as error:
+        return jsonify(error.message),404
     
-    return jsonify({'message': f"Professional {professional['name']} has been deleted."}), 200
-
+    return "", 204
+    
 
 def get_schedules(id):
     schedules = CalendarModel.query.all()
