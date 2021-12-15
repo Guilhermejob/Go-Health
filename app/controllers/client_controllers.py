@@ -285,8 +285,6 @@ def schedule_appointment(id):
 
     client = ClientModel.query.get(data['client_id'])
 
-    # print(client.schedules)
-
     if client.schedules:
         schedule = CalendarModel.query.filter_by(
             client_id=client.id).filter_by(professional_id=client.schedules[0].id).first()

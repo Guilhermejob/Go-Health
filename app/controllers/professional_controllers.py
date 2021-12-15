@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from app.exceptions.schedules_exceptions import MultipleKeysFreeSchedulesError, MissingKeyError, ProfessionalNotFoundError, ProfessionalScheduleListError
+from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
@@ -153,9 +154,11 @@ def get_schedules(id):
     except ProfessionalScheduleListError as error:
         return jsonify(error.message), 200
 
-    print(len(schedules_found))
+    return jsonify([{
+        'horario': schedule_found.schedule,
+        'client': ClientModel.query.get(schedule_found.client_id)} for schedule_found in schedules_found
 
-    return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
+    ]), 200
 
 
 def get_free_schedules(id):

@@ -65,9 +65,6 @@ class ClientModel(db.Model):
                 'You do not have anymore appointment whith this client')
 
     def serialize(self):
-        professional = self.schedules
-        if professional:
-            professional = self.schedules[-1]
 
         return {
             "name": self.name,
