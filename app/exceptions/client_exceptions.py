@@ -5,8 +5,8 @@ class UnsentEMailError(Exception):
 
 
 class UnauthorizedError(Exception):
-    def __init__(self):
-        self.message = "Unauthorized"
+    def __init__(self, msg):
+        self.message = msg
         super().__init__(self.message)
 
 
@@ -23,9 +23,9 @@ class InvalidGenderValueError(Exception):
 
 
 class InvalidKeysError(Exception):
-    def __init__(self,passed:list,mandatory:list,optional:list):
+    def __init__(self, passed: list, mandatory: list, optional: list):
         self.message = {
-            "mandatory keys":mandatory,
+            "mandatory keys": mandatory,
             "optional keys": optional,
             "keys sent": passed
         }
@@ -34,15 +34,15 @@ class InvalidKeysError(Exception):
 
 class InvalidValueTypeError(Exception):
     keys = {
-        "name":"string",
-        "last_name":"string",
-        "age":"integer",
-        "email":"string",
-        "password":"string",
-        "gender":"string",
-        "height":"float",
-        "weigth":"float",
-        "optional":{
+        "name": "string",
+        "last_name": "string",
+        "age": "integer",
+        "email": "string",
+        "password": "string",
+        "gender": "string",
+        "height": "float",
+        "weigth": "float",
+        "optional": {
             "diseases": "[{'name':'string'}]",
             "deficiencies": "[{'name':'string'}]",
             "surgeries": "[{'name':'string'}]"
@@ -59,9 +59,9 @@ class InvalidValueTypeError(Exception):
         bool: "boolean",
     }
 
-    def __init__(self,data:dict):
+    def __init__(self, data: dict):
         self.message = {
             "expected": self.keys,
-            "received": {key: self.received[type(value)] for key,value in data.items()}
+            "received": {key: self.received[type(value)] for key, value in data.items()}
         }
         super().__init__(self.message)
