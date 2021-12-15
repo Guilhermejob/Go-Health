@@ -54,41 +54,47 @@ def get_by_id(id):
     try:
         professional = ProfessionalModel.query.filter_by(id=id).first()
 
-        if professional == None:
+        if not professional:
             raise NotFoundProfessionalError
-        return jsonify(professional.serialize()), 200
-
+        return jsonify(professional), 200
     except NotFoundProfessionalError as err:
         return jsonify(err.message), 404
-    
-    
-def update():
-    
-    data = request.get_json()
-    
-    professional = get_jwt_identity()
-    
-    if 'password' in data.keys():
-        password_to_hash = data.pop('password')
-        data['password_hash'] = generate_password_hash(password_to_hash)
-    
-    ProfessionalModel.query.filter_by(email=professional['email']).update(data)
 
-    current_app.db.session.commit()
-    
-    if 'password_hash' in data.keys():
-        data.pop('password_hash')
-        
-    return jsonify(data), 200
+
+def update():
+
+    data = request.get_json()
+
+    try:
+        professional = get_jwt_identity()
+
+        if not professional:
+            raise NotFoundProfessionalError
+
+        if 'password' in data.keys():
+            password_to_hash = data.pop('password')
+            data['password_hash'] = generate_password_hash(password_to_hash)
+
+        ProfessionalModel.query.filter_by(
+            email=professional['email']).update(data)
+
+        current_app.db.session.commit()
+
+        if 'password_hash' in data.keys():
+            data.pop('password_hash')
+
+        return jsonify(data), 200
+    except NotFoundProfessionalError as err:
+        return jsonify(err.message), 404
 
 
 def delete():
     professional = get_jwt_identity()
-    
-    ProfessionalModel.query.filter_by(email=professional['email']).delete()
-    
+
+    current_app.db.session.delete(professional)
+
     current_app.db.session.commit()
-    
+
     return jsonify({'message': f"Professional {professional['name']} has been deleted."}), 200
 
 
@@ -97,8 +103,6 @@ def get_schedules(id):
 
     schedules_found = [
         schedule for schedule in schedules if schedule.professional_id == id]
-
-    print(schedules_found)
 
     return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
 
