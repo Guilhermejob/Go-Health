@@ -7,6 +7,7 @@ from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.exceptions.client_exceptions import UnauthorizedError
+from app.exceptions.schedules_exceptions import ProfessionalNotFoundError
 
 
 @dataclass
@@ -40,7 +41,8 @@ class ClientModel(db.Model):
     schedules = relationship(
         "ProfessionalModel",
         secondary='calendar',
-        backref="schedules"
+        backref="schedules",
+        uselist=True
     )
 
     @property
@@ -50,11 +52,9 @@ class ClientModel(db.Model):
     @password.setter
     def password(self, password_to_hash):
         self.password_hash = generate_password_hash(password_to_hash)
-        
 
     def check_password(self, password_to_compare):
         return check_password_hash(self.password_hash, password_to_compare)
-
 
     def check_professional(self, professional_id):
         if not self.schedules:
@@ -63,7 +63,6 @@ class ClientModel(db.Model):
         if professional_id != self.schedules[-1].id:
             raise UnauthorizedError(
                 'You do not have anymore appointment whith this client')
-
 
     def serialize(self):
         return {
@@ -78,6 +77,6 @@ class ClientModel(db.Model):
             "diseases": [{"name": disease.name} for disease in self.diseases],
             "surgeries": [{"name": surgery.name} for surgery in self.surgeries],
             "deficiencies": [{"name": deficiency.name} for deficiency in self.deficiencies],
-            "professional": self.schedules[-1],
+            "professional": self.schedules,
             "food_plan": [plan for plan in self.food_plan]
         }

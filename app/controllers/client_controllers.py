@@ -283,10 +283,22 @@ def schedule_appointment(id):
 
     data['client_id'] = user['id']
 
+    client = ClientModel.query.get(data['client_id'])
+
+    # print(client.schedules)
+
+    if client.schedules:
+        schedule = CalendarModel.query.filter_by(
+            client_id=client.id).filter_by(professional_id=client.schedules[0].id).first()
+
+        print('-' * 50)
+        print(schedule)
+
+        current_app.db.session.delete(schedule)
+
     try:
 
         if type(data['schedule_date']) != str:
-            print("aaaaaaaaaaaaaaaaaa")
             raise TypeDateNotAllowedError
 
         schedule_date = data.pop('schedule_date')
@@ -338,7 +350,7 @@ def schedule_appointment(id):
 
     if False in check_false:
 
-        return jsonify({'msg': 'busy schedule'}), 409
+        return jsonify({'msg': 'busy schedule'}), 200
     else:
         data['schedule'] = schedule_date
 
