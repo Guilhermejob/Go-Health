@@ -1,9 +1,5 @@
 from app.exceptions.food_plan_exceptions import InvalidFileError, InvalidKeyValueError, NotFoundError
-<<<<<<< HEAD
-from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError
-=======
 from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError, MissingFieldError
->>>>>>> feature/get_client_schedules
 from werkzeug.utils import secure_filename
 
 
