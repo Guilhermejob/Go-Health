@@ -19,3 +19,21 @@ class IncorrectPasswordError(Exception):
         }
 
         super().__init__(self.message)
+
+
+class InvalidKeyError(Exception):
+    
+    
+    def __init__(self, data) -> None:
+        self.message = {
+            "available key": {
+                "email": "string",
+                "password": "string"
+            },
+            "key sent": [
+                {
+                    "key": key
+                } for key in data
+            ]
+        }
+        super().__init__(self.message)
