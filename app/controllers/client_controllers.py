@@ -1,3 +1,4 @@
+import re
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
 from app.models.client_model import ClientModel
@@ -5,10 +6,11 @@ from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
 from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
+from app.exceptions.schedules_exceptions import FormatDateError, OutsideOfficeHoursError, ProfessionalNotFoundError, TypeDateNotAllowedError, WeekendAppointmentsError, MultipleKeysFreeSchedulesError, MissingKeyError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
-from re import fullmatch
+from re import S, fullmatch
 from app.models.calendar_table import CalendarModel
 from app.models.professional_model import ProfessionalModel
 from app.exceptions.professional_exceptions import InvalidDateFormatError
@@ -263,38 +265,66 @@ def schedule_appointment(id):
     data = request.get_json()
 
     try:
+        if "schedule_date" not in data.keys():
+            raise MissingKeyError
 
-        client = check_user(data['client_id'], ClientModel, 'client')
+        if len(data.keys()) > 1:
+            raise MultipleKeysFreeSchedulesError
 
-    except NotFoundError as error:
+    except MultipleKeysFreeSchedulesError as error:
+        return jsonify(error.message), 400
 
-        return jsonify(error.message), 404
+    except MissingKeyError as error:
+        return jsonify(error.message), 400
+
+    user = get_jwt_identity()
+
+    data['professional_id'] = id
+
+    data['client_id'] = user['id']
 
     try:
+
         if type(data['schedule_date']) != str:
-            raise InvalidDateFormatError
-    except InvalidDateFormatError as error:
+            print("aaaaaaaaaaaaaaaaaa")
+            raise TypeDateNotAllowedError
+
+        schedule_date = data.pop('schedule_date')
+
+        try:
+            schedule_date = datetime.strptime(
+                schedule_date, "%d/%m/%Y %H:%M:%S")
+
+        except:
+            return jsonify({"error": "currect date format : dd/mm/YYYY"}), 409
+
+        if schedule_date.hour < 9 or schedule_date.hour > 17:
+            raise OutsideOfficeHoursError
+
+    except TypeDateNotAllowedError as error:
         return jsonify(error.message), 409
 
-    schedule_date = data.pop('schedule_date')
-
-    try:
-        schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
-    except:
-        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
+    except OutsideOfficeHoursError as error:
+        return jsonify(error.message), 200
 
     schedules_found = CalendarModel.query.filter_by(professional_id=id).all()
 
     check_false = []
 
     try:
-        professional = ProfessionalModel.query.get_or_404(id)
+        professional = ProfessionalModel.query.get(id)
 
-    except:
-        return jsonify({'msg': 'error not found'}), 404
+        if professional == None:
+            raise ProfessionalNotFoundError
 
-    if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
-        return jsonify({"msg": 'appointments cannot be scheduled over the weekend'}), 409
+        if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
+            raise WeekendAppointmentsError
+
+    except WeekendAppointmentsError as error:
+        return jsonify(error.message), 200
+
+    except ProfessionalNotFoundError as error:
+        return jsonify(error.message), 404
 
     else:
         for schedule_found in schedules_found:
