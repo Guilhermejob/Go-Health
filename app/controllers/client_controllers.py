@@ -4,7 +4,7 @@ from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
@@ -158,8 +158,6 @@ def update():
 
     except NotFoundError as error:
         return jsonify(error.message),404
-    except UnauthorizedError as error:
-        return jsonify(error.message),401
     except InvalidKeysError as error:
         return jsonify(error.message), 400
     except InvalidValueTypeError as error:
