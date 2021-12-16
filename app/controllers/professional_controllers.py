@@ -16,6 +16,8 @@ def create():
 
     data = request.get_json()
 
+    data['final_rating'] = 0
+
     try:
         check_all_fields_professional(data)
         validate_keys_professional(data)
@@ -24,11 +26,9 @@ def create():
         check_type_and_format_phone(data)
 
         session = current_app.db.session
-
-        data['final_rating'] = 0
         
         if type(data['name']) != str:
-            raise TypeValueError
+            raise TypeValueError("name", data['name'])
 
         password_to_hash = data.pop("password")
         professional = ProfessionalModel(**data)
