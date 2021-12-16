@@ -306,13 +306,13 @@ def schedule_appointment(id):
                 schedule_date, "%d/%m/%Y %H:%M:%S")
 
         except:
-            return jsonify({"error": "currect date format : dd/mm/YYYY"}), 409
+            return jsonify({"error": "currect date format : dd/mm/YYYY"}), 400
 
         if schedule_date.hour < 9 or schedule_date.hour > 17:
             raise OutsideOfficeHoursError
 
     except TypeDateNotAllowedError as error:
-        return jsonify(error.message), 409
+        return jsonify(error.message), 400
 
     except OutsideOfficeHoursError as error:
         return jsonify(error.message), 200
