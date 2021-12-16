@@ -14,4 +14,4 @@ class ProfessionalRatingModel(db.Model):
     rating = Column(Integer, nullable=False)
     client_id = Column(Integer, nullable=False)
     professional_id = Column(Integer, ForeignKey(
-        'professional.id'), nullable=False)
+        'professional.id', ondelete='CASCADE'), nullable=False)

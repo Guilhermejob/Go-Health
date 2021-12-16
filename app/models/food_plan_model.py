@@ -21,5 +21,5 @@ class FoodPlanModel(db.Model):
     expiration = Column(
         DateTime, default=datetime.utcnow() + timedelta(days=90))
     client_id = Column(Integer, ForeignKey(
-        'clients.id'), nullable=False)
+        'clients.id', ondelete='CASCADE'), nullable=False)
     professional_id = Column(Integer, nullable=False)
