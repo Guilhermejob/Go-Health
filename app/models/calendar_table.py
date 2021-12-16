@@ -9,8 +9,8 @@ class CalendarModel(db.Model):
 
 
     id = db.Column(db.Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey('clients.id'))
-    professional_id = Column(Integer, ForeignKey('professional.id'))
+    client_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
+    professional_id = Column(Integer, ForeignKey('professional.id', ondelete='CASCADE'))
     schedule = Column(DateTime, nullable=False)
 
 

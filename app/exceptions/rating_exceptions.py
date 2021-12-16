@@ -48,3 +48,18 @@ class AlreadyRatingError(Exception):
             "message": "Professional has already received rating from this client."
         }
         super().__init__(self.message)
+        
+        
+class InvalidValueRating(Exception):
+
+
+    def __init__(self, rating) -> None:
+        self.message = {
+            "available value in rating": {
+                "rating": "An integer between 1 to 5"
+            },
+            "value sent": {
+                "rating": rating
+            }
+        }
+        super().__init__(self.message)

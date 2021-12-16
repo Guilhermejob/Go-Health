@@ -1,29 +1,36 @@
 from flask import jsonify, request, current_app
+from app.exceptions.schedules_exceptions import MultipleKeysFreeSchedulesError, MissingKeyError, ProfessionalNotFoundError, ProfessionalScheduleListError, TypeDateNotAllowedError
+from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
-from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError, MissingFieldError
+from app.exceptions.professional_exceptions import NotFoundProfessionalError, KeysNotAllowedError, TypeValueError, InvalidDateFormatError, MissingFieldError, TypeKeyEmailError, TypeKeyPhoneError
 from app.exceptions.food_plan_exceptions import NotFoundError
 from datetime import *
 import sqlalchemy
-from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional
+from app.controllers import check_user, format_output_especific_professional, validate_keys_professional, validate_type_value_professional, check_all_fields_professional, check_type_and_format_email, check_type_and_format_phone
 from app.models.calendar_table import CalendarModel
 
 
 def create():
 
     data = request.get_json()
+    data['final_rating'] = 0
+
+    data['final_rating'] = 0
 
     try:
         check_all_fields_professional(data)
         validate_keys_professional(data)
         validate_type_value_professional(data)
+        check_type_and_format_email(data)
+        check_type_and_format_phone(data)
 
         session = current_app.db.session
 
-        data['final_rating'] = 0
+        if type(data['name']) != str:
+            raise TypeValueError('name', data['name'])
 
-        # convert password in password_hash
         password_to_hash = data.pop("password")
         professional = ProfessionalModel(**data)
         professional.password = password_to_hash
@@ -44,6 +51,10 @@ def create():
         return jsonify(err.message), 400
     except MissingFieldError as err:
         return jsonify(err.message), 400
+    except TypeKeyEmailError as err:
+        return jsonify(err.message), 400
+    except TypeKeyPhoneError as err:
+        return jsonify(err.message), 400
 
 
 def get_all():
@@ -60,12 +71,12 @@ def get_by_id(id):
 
         if not professional:
             raise NotFoundProfessionalError
-        return jsonify(professional), 200
+        return jsonify(professional.serialize()), 200
+
     except NotFoundProfessionalError as err:
         return jsonify(err.message), 404
 
 
-# tratamento de error pra chaves
 def update():
 
     data = request.get_json()
@@ -83,10 +94,13 @@ def update():
             password_to_hash = data.pop('password')
             data['password_hash'] = generate_password_hash(password_to_hash)
 
+        check_type_and_format_email(data)
+        check_type_and_format_phone(data)
+
         ProfessionalModel.query.filter_by(
             email=professional['email']).update(data)
 
-        current_app.db.session.commit()
+        # current_app.db.session.commit()
 
         if 'password_hash' in data.keys():
             data.pop('password_hash')
@@ -97,6 +111,10 @@ def update():
     except KeysNotAllowedError as err:
         return jsonify(err.message), 400
     except TypeValueError as err:
+        return jsonify(err.message), 400
+    except TypeKeyEmailError as err:
+        return jsonify(err.message), 400
+    except TypeKeyPhoneError as err:
         return jsonify(err.message), 400
 
 
@@ -122,7 +140,29 @@ def get_schedules(id):
     schedules_found = [
         schedule for schedule in schedules if schedule.professional_id == id]
 
-    return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
+    try:
+        professional = ProfessionalModel.query.get(id)
+
+        if professional == None:
+            raise ProfessionalNotFoundError
+
+    except ProfessionalNotFoundError as error:
+
+        return jsonify(error.message), 404
+
+    try:
+
+        if len(schedules_found) <= 0:
+            raise ProfessionalScheduleListError
+
+    except ProfessionalScheduleListError as error:
+        return jsonify(error.message), 200
+
+    return jsonify([{
+        'horario': schedule_found.schedule,
+        'client': ClientModel.query.get(schedule_found.client_id)} for schedule_found in schedules_found
+
+    ]), 200
 
 
 def get_free_schedules(id):
@@ -136,21 +176,35 @@ def get_free_schedules(id):
     data = request.get_json()
 
     try:
-        if type(data['schedule_date']) != str:
-            raise InvalidDateFormatError
-    except InvalidDateFormatError as error:
-        return jsonify(error.message), 409
+        if len(data.keys()) > 1:
+            raise MultipleKeysFreeSchedulesError
+    except MultipleKeysFreeSchedulesError as error:
+        return jsonify(error.message), 400
 
     try:
-        professional = ProfessionalModel.query.get_or_404(id)
+        if "schedule_date" not in data.keys():
+            raise MissingKeyError
+    except MissingKeyError as error:
+        return jsonify(error.message), 400
 
-    except:
-        return jsonify({'msg': 'error not found'}), 404
+    try:
+        if type(data['schedule_date']) != str:
+            raise TypeDateNotAllowedError
+    except TypeDateNotAllowedError as error:
+        return jsonify(error.message), 400
+
+    try:
+        professional = ProfessionalModel.query.get(id)
+        if professional == None:
+            raise ProfessionalNotFoundError
+
+    except ProfessionalNotFoundError as error:
+        return jsonify(error.message), 404
 
     try:
         schedule_date = datetime.strptime(data['schedule_date'], "%d/%m/%Y")
     except:
-        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 400
 
     schedule_date = schedule_date + timedelta(hours=9)
 

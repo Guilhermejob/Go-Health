@@ -38,3 +38,12 @@ class InvalidKeyValueError(Exception):
 
         super().__init__(self.message)
     
+    
+class MissingKeyError(Exception):
+    
+    
+    def __init__(self) -> None:
+        self.message = {
+            "message": "Missing key 'file'"
+        }
+        super().__init__(self.message)

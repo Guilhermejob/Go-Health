@@ -21,9 +21,9 @@ class KeysNotAllowedError(Exception):
         'phone',
     ]
 
-    def __init__(self, data, key):
+    def __init__(self, key):
 
-        list_keys = [key for key in data.keys()]
+        list_keys = [key for key in self.allowed_keys]
 
         self.message = {
             'error': f"This key: '{key}' not allowed. Keys allowed {list_keys}"
@@ -58,6 +58,26 @@ class MissingFieldError(Exception):
 
         self.message = {
             'error': 'Some keys are missing!'
+        }
+
+        super().__init__(self.message)
+
+
+class TypeKeyEmailError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': "Email invalid! Email allowed 'example@mail.com'"
+        }
+
+        super().__init__(self.message)
+
+
+class TypeKeyPhoneError(Exception):
+    def __init__(self):
+
+        self.message = {
+            'error': "Phone invalid! Phone allowed '(00)00000-0000'"
         }
 
         super().__init__(self.message)
