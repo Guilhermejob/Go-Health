@@ -47,17 +47,15 @@ def signin_professional():
         if len(data) > 2 or not 'email' in data.keys() or not 'password' in data.keys():
             raise InvalidKeyError(data)
 
-        formatted_email = f"%{data['email']}%"
-        client = ProfessionalModel.query.filter(
-            ProfessionalModel.email.ilike(formatted_email)).first()
+        professional = ProfessionalModel.query.filter_by(email=data['email']).first()
 
-        if not client:
+        if not professional:
             raise EmailNotFoundError(data['email'])
 
-        if not client.check_password(data['password']):
+        if not professional.check_password(data['password']):
             raise IncorrectPasswordError()
 
-        access_token = create_access_token(client)
+        access_token = create_access_token(professional)
 
     except EmailNotFoundError as error:
         return jsonify(error.message), 404
