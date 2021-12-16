@@ -1,8 +1,7 @@
 from app.exceptions.food_plan_exceptions import InvalidFileError, InvalidKeyValueError, NotFoundError
-from app.exceptions.client_exceptions import UnauthorizedError
-from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError
+from app.exceptions.professional_exceptions import KeysNotAllowedError, TypeValueError, MissingFieldError, TypeKeyEmailError, TypeKeyPhoneError
 from werkzeug.utils import secure_filename
-from flask_jwt_extended import get_jwt_identity
+import re
 
 
 def check_pdf_extension(filename: str):
@@ -24,11 +23,6 @@ def check_user(id, model, send_type: str):
 
     return user
 
-
-# def check_authorization(id):
-#     user = get_jwt_identity()
-#     if user["id"] != id:
-#         raise UnauthorizedError
 
 def format_output_especific_professional(text):
     output = text.replace('(', ' ')
@@ -55,8 +49,12 @@ def validate_keys_professional(data):
     ]
 
     for key in data.keys():
+        print('%' * 80)
+        print(key)
+        print('%' * 80)
+
         if key not in allowed_keys:
-            raise KeysNotAllowedError(data, key)
+            raise KeysNotAllowedError(key)
 
 
 def validate_type_value_professional(data):
@@ -64,3 +62,44 @@ def validate_type_value_professional(data):
     for key, value in data.items():
         if type(value) != str and type(value) != int:
             raise TypeValueError(key, value)
+
+
+def check_all_fields_professional(data):
+    allowed_keys = [
+        'name',
+        'last_name',
+        'gender',
+        'age',
+        'specialization',
+        'description',
+        'final_rating',
+        'crm',
+        'email',
+        'password',
+        'phone',
+    ]
+
+    keys = [key for key in data.keys()]
+
+    if len(allowed_keys) > len(keys):
+        raise MissingFieldError
+
+
+def check_type_and_format_email(data):
+    regex_email = "(\w*\@\w*\.\w*)"
+
+    if data.get('email'):
+        if type(data['email']) != str:
+            raise TypeKeyEmailError
+        if re.fullmatch(regex_email, data["email"]) == None:
+            raise TypeKeyEmailError
+
+
+def check_type_and_format_phone(data):
+    regex_tel = "(\(\d{2}\))(\d{5}\-\d{4})"
+
+    if data.get('phone'):
+        if type(data['phone']) != str:
+            raise TypeKeyPhoneError
+        if re.fullmatch(regex_tel, data["phone"]) == None:
+            raise TypeKeyPhoneError

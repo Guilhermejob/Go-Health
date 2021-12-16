@@ -1,17 +1,19 @@
+import re
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
 from app.models.client_model import ClientModel
 from app.models.deficiency_model import DeficiencyModel
 from app.models.surgery_model import SurgeryModel
 from app.models.diseases_model import DiseaseModel
-from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError,UnauthorizedError, UnsentEMailError
+from app.exceptions.client_exceptions import InvalidKeysError, InvalidValueTypeError, InvalidGenderValueError, InvalidEmailError
+from app.exceptions.schedules_exceptions import FormatDateError, OutsideOfficeHoursError, ProfessionalNotFoundError, TypeDateNotAllowedError, WeekendAppointmentsError, MultipleKeysFreeSchedulesError, MissingKeyError
 from app.controllers import check_user
 from app.exceptions.food_plan_exceptions import NotFoundError
 from sqlalchemy.exc import IntegrityError
-from re import fullmatch
+from re import S, fullmatch
 from app.models.calendar_table import CalendarModel
 from app.models.professional_model import ProfessionalModel
-from app.exceptions.professional_exceptions import InvalidDateFormatError, NotFoundProfessionalError
+from app.exceptions.professional_exceptions import InvalidDateFormatError
 from datetime import *
 
 
@@ -38,9 +40,9 @@ def add_diseases_deficiencies_surgeries(items, model):
 
 
 def get_diseases_deficiencies_surgeries(data):
-    diseases = data.get('diseases',[]) 
-    deficiencies = data.get('deficiencies',[])
-    surgeries = data.get('surgeries',[])
+    diseases = data.get('diseases', [])
+    deficiencies = data.get('deficiencies', [])
+    surgeries = data.get('surgeries', [])
 
     if diseases:
         data.pop('diseases')
@@ -57,30 +59,32 @@ def get_diseases_deficiencies_surgeries(data):
         surgeries = add_diseases_deficiencies_surgeries(
             surgeries, SurgeryModel)
 
-    return diseases,deficiencies,surgeries
+    return diseases, deficiencies, surgeries
 
 
 def check_update_keys(data):
     for key in data.keys():
         if((key not in ClientModel.mandatory_keys) and (key not in ClientModel.optional_keys)):
-            raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
+            raise InvalidKeysError(
+                list(data.keys()), ClientModel.mandatory_keys, ClientModel.optional_keys)
 
 
 def check_create_data_keys(data):
     if (len(data) < len(ClientModel.mandatory_keys)) or (len(data) > (len(ClientModel.mandatory_keys) + len(ClientModel.optional_keys))):
-        raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
+        raise InvalidKeysError(
+            list(data.keys()), ClientModel.mandatory_keys, ClientModel.optional_keys)
 
     for key in ClientModel.mandatory_keys:
         if key not in data.keys():
-            raise InvalidKeysError(list(data.keys()),ClientModel.mandatory_keys,ClientModel.optional_keys)
+            raise InvalidKeysError(
+                list(data.keys()), ClientModel.mandatory_keys, ClientModel.optional_keys)
 
     check_update_keys(data)
-  
+
 
 def check_data_values(data):
 
-    # "name","last_name","age","email","password","gender","height","weigth"
-    for key,value in data.items():
+    for key, value in data.items():
         if ((
             key == "name" or
             key == "last_name" or
@@ -89,37 +93,36 @@ def check_data_values(data):
             key == "gender"
         ) and type(value) != str):
             raise InvalidValueTypeError(data)
-        
+
         if((key == "height" or key == "weigth") and type(value) != float):
             raise InvalidValueTypeError(data)
 
         if key == "age" and type(value) != int:
             raise InvalidValueTypeError(data)
-        
-        # "diseases","surgeries","deficiencies" - [{"name":"string"}]
+
         if (key == "diseases" or key == "surgeries" or key == "deficiencies"):
             if type(value) != list:
                 raise InvalidValueTypeError(data)
-            
-            if(len(value)>0):
+
+            if(len(value) > 0):
                 for item in value:
                     if(
-                        (type(item) != dict) or 
-                        (len(item) != 1) or 
-                        ("name" not in item.keys()) or 
+                        (type(item) != dict) or
+                        (len(item) != 1) or
+                        ("name" not in item.keys()) or
                         type(item["name"]) != str
                     ):
                         raise InvalidValueTypeError(data)
 
 
-def check_gender(gender:str):
+def check_gender(gender: str):
     if ((gender.lower() != 'm') and (gender.lower() != 'f')):
         raise InvalidGenderValueError
 
 
-def check_email(email:str):
+def check_email(email: str):
     pattern = "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-    is_valid = fullmatch(pattern,email)
+    is_valid = fullmatch(pattern, email)
     if not is_valid:
         raise InvalidEmailError
 
@@ -128,8 +131,8 @@ def update():
 
     data = request.get_json()
     user = get_jwt_identity()
-    
-    try:        
+
+    try:
         check_update_keys(data)
         check_data_values(data)
         if data.get("gender"):
@@ -137,7 +140,8 @@ def update():
         if data.get("email"):
             check_email(data["email"])
 
-        diseases,deficiencies,surgeries = get_diseases_deficiencies_surgeries(data)
+        diseases, deficiencies, surgeries = get_diseases_deficiencies_surgeries(
+            data)
         if diseases:
             data["diseases"] = diseases
         if deficiencies:
@@ -145,23 +149,21 @@ def update():
         if surgeries:
             data["surgeries"] = surgeries
 
-        client = check_user(user["id"],ClientModel,"client")
+        client = check_user(user["id"], ClientModel, "client")
 
-        new_password = data.get("password") 
+        new_password = data.get("password")
         if new_password:
             client.password = new_password
             data.pop("password")
 
-        for key,value in data.items():
-            setattr(client,key,value)
+        for key, value in data.items():
+            setattr(client, key, value)
 
         current_app.db.session.add(client)
         current_app.db.session.commit()
 
     except NotFoundError as error:
-        return jsonify(error.message),404
-    except UnauthorizedError as error:
-        return jsonify(error.message),401
+        return jsonify(error.message), 404
     except InvalidKeysError as error:
         return jsonify(error.message), 400
     except InvalidValueTypeError as error:
@@ -171,25 +173,26 @@ def update():
     except InvalidGenderValueError as error:
         return jsonify(error.message), 400
     except IntegrityError:
-        return jsonify({"message":"email already exists"}),409
+        return jsonify({"message": "email already exists"}), 409
 
     result = client.serialize()
     result.pop("food_plan")
     result.pop("professional")
 
-    return jsonify(result),201
+    return jsonify(result), 201
 
 
 def create():
     data = request.get_json()
-    
+
     try:
         check_create_data_keys(data)
         check_data_values(data)
         check_gender(data["gender"])
         check_email(data["email"])
 
-        diseases,deficiencies,surgeries = get_diseases_deficiencies_surgeries(data)
+        diseases, deficiencies, surgeries = get_diseases_deficiencies_surgeries(
+            data)
 
         password_to_hash = data.pop("password")
 
@@ -214,8 +217,8 @@ def create():
     except InvalidGenderValueError as error:
         return jsonify(error.message), 400
     except IntegrityError:
-        return jsonify({"message":"email already exists"}),409
-    
+        return jsonify({"message": "email already exists"}), 409
+
     return jsonify(client), 201
 
 
@@ -229,32 +232,6 @@ def get_client(id):
 
     return jsonify(client.serialize()), 200
 
-# def get_by_email():
-#     data = request.get_json()    
-#     token = get_jwt_identity()
-    
-#     try:
-#         if "crm" not in token.keys():
-#             raise UnauthorizedError
-        
-#         if "email" not in data.keys():
-#             raise UnsentEMailError
-
-#         user = ClientModel.query.filter_by(email=data["email"]).first()
-
-#         if not user:
-#             raise NotFoundError("client")
-
-#     except UnauthorizedError as error:
-#         return jsonify(error.message),401
-#     except NotFoundError as error:
-#         return jsonify(error.message),404
-#     except UnsentEMailError as error:
-#         return jsonify(error.message),400
-
-#     return jsonify(user.serialize()),200
-
-
 
 def get_all():
     all_clients = ClientModel.query.all()
@@ -264,45 +241,100 @@ def get_all():
 def delete():
     try:
         user = get_jwt_identity()
-        client = check_user(user["id"],ClientModel,"client")
+        client = check_user(user["id"], ClientModel, "client")
         current_app.db.session.delete(client)
         current_app.db.session.commit()
-            
-    except NotFoundError as error:
-        return jsonify(error.message),404
-    
-    return "",204
 
-    
+    except NotFoundError as error:
+        return jsonify(error.message), 404
+
+    return "", 204
+
+
+def get_schedules(id):
+    schedules = CalendarModel.query.all()
+
+    schedules_found = [
+        schedule for schedule in schedules if schedule.client_id == id]
+
+    return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
+
+
 def schedule_appointment(id):
 
     data = request.get_json()
 
     try:
-        if type(data['schedule_date']) != str:
-            raise InvalidDateFormatError
-    except InvalidDateFormatError as error:
-        return jsonify(error.message), 409
+        if "schedule_date" not in data.keys():
+            raise MissingKeyError
 
-    schedule_date = data.pop('schedule_date')
+        if len(data.keys()) > 1:
+            raise MultipleKeysFreeSchedulesError
+
+    except MultipleKeysFreeSchedulesError as error:
+        return jsonify(error.message), 400
+
+    except MissingKeyError as error:
+        return jsonify(error.message), 400
+
+    user = get_jwt_identity()
+
+    data['professional_id'] = id
+
+    data['client_id'] = user['id']
+
+    client = ClientModel.query.get(data['client_id'])
+
+    if client.schedules:
+        schedule = CalendarModel.query.filter_by(
+            client_id=client.id).filter_by(professional_id=client.schedules[0].id).first()
+
+        print('-' * 50)
+        print(schedule)
+
+        current_app.db.session.delete(schedule)
 
     try:
-        schedule_date = datetime.strptime(schedule_date, "%d/%m/%Y %H:%M:%S")
-    except:
-        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
+
+        if type(data['schedule_date']) != str:
+            raise TypeDateNotAllowedError
+
+        schedule_date = data.pop('schedule_date')
+
+        try:
+            schedule_date = datetime.strptime(
+                schedule_date, "%d/%m/%Y %H:%M:%S")
+
+        except:
+            return jsonify({"error": "currect date format : dd/mm/YYYY"}), 400
+
+        if schedule_date.hour < 9 or schedule_date.hour > 17:
+            raise OutsideOfficeHoursError
+
+    except TypeDateNotAllowedError as error:
+        return jsonify(error.message), 400
+
+    except OutsideOfficeHoursError as error:
+        return jsonify(error.message), 200
 
     schedules_found = CalendarModel.query.filter_by(professional_id=id).all()
 
     check_false = []
 
     try:
-        professional = ProfessionalModel.query.get_or_404(id)
+        professional = ProfessionalModel.query.get(id)
 
-    except:
-        return jsonify({'msg': 'error not found'}), 404
+        if professional == None:
+            raise ProfessionalNotFoundError
 
-    if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
-        return jsonify({"msg": 'appointments cannot be scheduled over the weekend'}), 409
+        if schedule_date.isoweekday() == 6 or schedule_date.isoweekday() == 7:
+            raise WeekendAppointmentsError
+
+    except WeekendAppointmentsError as error:
+        return jsonify(error.message), 200
+
+    except ProfessionalNotFoundError as error:
+        return jsonify(error.message), 404
 
     else:
         for schedule_found in schedules_found:
@@ -316,13 +348,16 @@ def schedule_appointment(id):
 
     if False in check_false:
 
-        return jsonify({'msg': 'busy schedule'}), 409
+        return jsonify({'msg': 'busy schedule'}), 200
     else:
         data['schedule'] = schedule_date
 
         schedule = CalendarModel(**data)
 
+        # client.professional_id = professional.id
+        # current_app.db.session.add(client)
+
         current_app.db.session.add(schedule)
         current_app.db.session.commit()
 
-        return jsonify({'msg': 'Horario marcado, nos vemos na consulta!'}), 201
+        return jsonify({'msg': 'scheduled time, see you at the appointment!'}), 201
