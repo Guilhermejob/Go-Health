@@ -19,9 +19,7 @@ def signin_client():
         if len(data) > 2 or not 'email' in data.keys() or not 'password' in data.keys():
             raise InvalidKeyError(data)
 
-        formatted_email = f"%{data['email']}%"
-        client = ClientModel.query.filter(
-            ClientModel.email.ilike(formatted_email)).first()
+        client = ClientModel.query.filter_by(email=data['email']).first()
 
         if not client:
             raise EmailNotFoundError(data['email'])
