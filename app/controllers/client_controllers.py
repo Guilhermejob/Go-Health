@@ -360,4 +360,4 @@ def schedule_appointment(id):
         current_app.db.session.add(schedule)
         current_app.db.session.commit()
 
-        return jsonify({'msg': 'Horario marcado, nos vemos na consulta!'}), 201
+        return jsonify({'msg': 'scheduled time, see you at the appointment!'}), 201

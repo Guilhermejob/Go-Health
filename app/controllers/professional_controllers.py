@@ -1,5 +1,5 @@
 from flask import jsonify, request, current_app
-from app.exceptions.schedules_exceptions import MultipleKeysFreeSchedulesError, MissingKeyError, ProfessionalNotFoundError, ProfessionalScheduleListError
+from app.exceptions.schedules_exceptions import MultipleKeysFreeSchedulesError, MissingKeyError, ProfessionalNotFoundError, ProfessionalScheduleListError, TypeDateNotAllowedError
 from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
@@ -15,6 +15,8 @@ from app.models.calendar_table import CalendarModel
 def create():
 
     data = request.get_json()
+    data['final_rating'] = 0
+
     data['final_rating'] = 0
 
     try:
@@ -187,9 +189,9 @@ def get_free_schedules(id):
 
     try:
         if type(data['schedule_date']) != str:
-            raise InvalidDateFormatError
-    except InvalidDateFormatError as error:
-        return jsonify(error.message), 409
+            raise TypeDateNotAllowedError
+    except TypeDateNotAllowedError as error:
+        return jsonify(error.message), 400
 
     try:
         professional = ProfessionalModel.query.get(id)
@@ -202,7 +204,7 @@ def get_free_schedules(id):
     try:
         schedule_date = datetime.strptime(data['schedule_date'], "%d/%m/%Y")
     except:
-        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 409
+        return jsonify({'msg': 'currect date format : dd/mm/YYYY'}), 400
 
     schedule_date = schedule_date + timedelta(hours=9)
 

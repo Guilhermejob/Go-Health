@@ -1,6 +1,6 @@
 from flask import jsonify, current_app, request
 from app.exceptions.professional_exceptions import NotFoundProfessionalError
-from app.exceptions.rating_exceptions import AlreadyRatingError, InvalidKeyError, InvalidTypeError
+from app.exceptions.rating_exceptions import AlreadyRatingError, InvalidKeyError, InvalidTypeError, InvalidValueRating
 from app.models.professional_rating_model import ProfessionalRatingModel
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
@@ -14,6 +14,9 @@ def set_rating(professional_id: int):
 
         if type(data['rating']) != int:
             raise InvalidTypeError(data['rating'])
+        
+        if data['rating'] < 1 or data['rating'] > 5:
+            raise InvalidValueRating(data['rating'])
 
         client = get_jwt_identity()
         professional = ProfessionalModel.query.get(professional_id)
@@ -47,5 +50,7 @@ def set_rating(professional_id: int):
         return jsonify(error.message), 400
     except AlreadyRatingError as error:
         return jsonify(error.message), 409
+    except InvalidValueRating as error:
+        return jsonify(error.message), 400
     
     return jsonify(rating), 200
