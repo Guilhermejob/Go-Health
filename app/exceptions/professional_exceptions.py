@@ -21,9 +21,9 @@ class KeysNotAllowedError(Exception):
         'phone',
     ]
 
-    def __init__(self, data, key):
+    def __init__(self, key):
 
-        list_keys = [key for key in data.keys()]
+        list_keys = [key for key in self.allowed_keys]
 
         self.message = {
             'error': f"This key: '{key}' not allowed. Keys allowed {list_keys}"
