@@ -56,4 +56,5 @@ class ProfessionalModel(db.Model):
             "final_rating": self.final_rating,
             "email": self.email,
             "phone": self.phone,
+            "clients": self.schedules
         }

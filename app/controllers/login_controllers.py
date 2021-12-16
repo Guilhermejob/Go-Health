@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from app.exceptions.login_exceptions import EmailNotFoundError, IncorrectPasswordError
+from app.exceptions.login_exceptions import EmailNotFoundError, IncorrectPasswordError, InvalidKeyError
 from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 
@@ -16,6 +16,9 @@ def signin_client():
     data = request.get_json()
 
     try:
+        if len(data) > 2 or not 'email' in data.keys() or not 'password' in data.keys():
+            raise InvalidKeyError(data)
+
         formatted_email = f"%{data['email']}%"
         client = ClientModel.query.filter(
             ClientModel.email.ilike(formatted_email)).first()
@@ -32,6 +35,8 @@ def signin_client():
         return jsonify(error.message), 404
     except IncorrectPasswordError as error:
         return jsonify(error.message), 401
+    except InvalidKeyError as error:
+        return jsonify(error.message), 400
 
     return {"access_token": access_token}, 200
 
@@ -41,6 +46,9 @@ def signin_professional():
     data = request.get_json()
 
     try:
+        if len(data) > 2 or not 'email' in data.keys() or not 'password' in data.keys():
+            raise InvalidKeyError(data)
+
         formatted_email = f"%{data['email']}%"
         client = ProfessionalModel.query.filter(
             ProfessionalModel.email.ilike(formatted_email)).first()
@@ -57,5 +65,7 @@ def signin_professional():
         return jsonify(error.message), 404
     except IncorrectPasswordError as error:
         return jsonify(error.message), 401
+    except InvalidKeyError as error:
+        return jsonify(error.message), 400
 
     return {"access_token": access_token}, 200

@@ -1,4 +1,6 @@
 from flask import jsonify, request, current_app
+from app.exceptions.schedules_exceptions import MultipleKeysFreeSchedulesError, MissingKeyError, ProfessionalNotFoundError, ProfessionalScheduleListError
+from app.models.client_model import ClientModel
 from app.models.professional_model import ProfessionalModel
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.security import generate_password_hash
@@ -68,7 +70,8 @@ def get_by_id(id):
 
         if not professional:
             raise NotFoundProfessionalError
-        return jsonify(professional), 200
+        return jsonify(professional.serialize()), 200
+
     except NotFoundProfessionalError as err:
         return jsonify(err.message), 404
 
@@ -136,7 +139,29 @@ def get_schedules(id):
     schedules_found = [
         schedule for schedule in schedules if schedule.professional_id == id]
 
-    return jsonify([{'horario': schedule_found.schedule} for schedule_found in schedules_found]), 200
+    try:
+        professional = ProfessionalModel.query.get(id)
+
+        if professional == None:
+            raise ProfessionalNotFoundError
+
+    except ProfessionalNotFoundError as error:
+
+        return jsonify(error.message), 404
+
+    try:
+
+        if len(schedules_found) <= 0:
+            raise ProfessionalScheduleListError
+
+    except ProfessionalScheduleListError as error:
+        return jsonify(error.message), 200
+
+    return jsonify([{
+        'horario': schedule_found.schedule,
+        'client': ClientModel.query.get(schedule_found.client_id)} for schedule_found in schedules_found
+
+    ]), 200
 
 
 def get_free_schedules(id):
@@ -150,16 +175,30 @@ def get_free_schedules(id):
     data = request.get_json()
 
     try:
+        if len(data.keys()) > 1:
+            raise MultipleKeysFreeSchedulesError
+    except MultipleKeysFreeSchedulesError as error:
+        return jsonify(error.message), 400
+
+    try:
+        if "schedule_date" not in data.keys():
+            raise MissingKeyError
+    except MissingKeyError as error:
+        return jsonify(error.message), 400
+
+    try:
         if type(data['schedule_date']) != str:
             raise InvalidDateFormatError
     except InvalidDateFormatError as error:
         return jsonify(error.message), 409
 
     try:
-        professional = ProfessionalModel.query.get_or_404(id)
+        professional = ProfessionalModel.query.get(id)
+        if professional == None:
+            raise ProfessionalNotFoundError
 
-    except:
-        return jsonify({'msg': 'error not found'}), 404
+    except ProfessionalNotFoundError as error:
+        return jsonify(error.message), 404
 
     try:
         schedule_date = datetime.strptime(data['schedule_date'], "%d/%m/%Y")
