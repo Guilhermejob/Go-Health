@@ -49,8 +49,12 @@ def validate_keys_professional(data):
     ]
 
     for key in data.keys():
+        print('%' * 80)
+        print(key)
+        print('%' * 80)
+
         if key not in allowed_keys:
-            raise KeysNotAllowedError(data, key)
+            raise KeysNotAllowedError(key)
 
 
 def validate_type_value_professional(data):

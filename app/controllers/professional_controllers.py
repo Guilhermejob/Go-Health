@@ -15,6 +15,7 @@ from app.models.calendar_table import CalendarModel
 def create():
 
     data = request.get_json()
+    data['final_rating'] = 0
 
     try:
         check_all_fields_professional(data)
@@ -25,10 +26,8 @@ def create():
 
         session = current_app.db.session
 
-        data['final_rating'] = 0
-        
         if type(data['name']) != str:
-            raise TypeValueError
+            raise TypeValueError('name', data['name'])
 
         password_to_hash = data.pop("password")
         professional = ProfessionalModel(**data)
@@ -99,7 +98,7 @@ def update():
         ProfessionalModel.query.filter_by(
             email=professional['email']).update(data)
 
-        current_app.db.session.commit()
+        # current_app.db.session.commit()
 
         if 'password_hash' in data.keys():
             data.pop('password_hash')
