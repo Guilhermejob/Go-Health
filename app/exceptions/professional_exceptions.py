@@ -23,7 +23,7 @@ class KeysNotAllowedError(Exception):
 
     def __init__(self, data, key):
 
-        list_keys = [key for key in data.keys()]
+        list_keys = [key for key in self.allowed_keys]
 
         self.message = {
             'error': f"This key: '{key}' not allowed. Keys allowed {list_keys}"

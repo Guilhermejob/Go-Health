@@ -24,6 +24,9 @@ def create():
         session = current_app.db.session
 
         data['final_rating'] = 0
+        
+        if type(data['name']) != str:
+            raise TypeValueError
 
         password_to_hash = data.pop("password")
         professional = ProfessionalModel(**data)
