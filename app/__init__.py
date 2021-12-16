@@ -1,6 +1,6 @@
 from flask import Flask
 from os import getenv
-from app.configs import database, migrations, auth
+from app.configs import database, migrations, auth, cors
 from app import routes
 from app import exceptions
 from dotenv import load_dotenv
@@ -18,6 +18,7 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
     app.config["SECRET_KEY"] = getenv("SECRET_KEY")
 
+    cors.init_app(app)
     database.init_app(app)
     migrations.init_app(app)
     auth.init_app(app)
