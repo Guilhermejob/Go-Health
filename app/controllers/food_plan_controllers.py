@@ -12,7 +12,7 @@ import io
 def get_food_plan_by_client_id(client_id: int):
     try:
         check_user(client_id, ClientModel, 'client')
-        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()     
+        food_plan = FoodPlanModel.query.filter_by(client_id=client_id).all()
 
     except NotFoundError as error:
         return jsonify(error.message), 404
@@ -32,7 +32,7 @@ def download_food_plan(food_plan_id: int):
 
 def create_plan(client_id: int):
     try:
-        
+
         pdf = request.files
         if not "file" in pdf.keys():
             raise MissingKeyError
@@ -41,9 +41,10 @@ def create_plan(client_id: int):
         filename = check_pdf_extension(pdf.filename)
         user = get_jwt_identity()
 
-        professional: ProfessionalModel = check_user(user['id'], ProfessionalModel, "professional")
+        professional: ProfessionalModel = check_user(
+            user['id'], ProfessionalModel, "professional")
         client: ClientModel = check_user(client_id, ClientModel, "client")
-        
+
         client.check_professional(professional.id)
 
     except InvalidKeyValueError as error:
